@@ -139,8 +139,8 @@ public final class Constants {
 
   public static final class ShooterConstants {
 
-    public static final int SHOOT_LOW_MOTOR_ID = 4;
-    public static final int SHOOT_HIGH_MOTOR_ID = 3;
+    public static final int SHOOT_LOW_MOTOR_ID = 5;
+    public static final int SHOOT_HIGH_MOTOR_ID = 4;
   }
 
   public static final class ArmConstants {

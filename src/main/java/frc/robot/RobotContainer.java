@@ -55,14 +55,14 @@ import frc.robot.subsystems.shooter.ShooterIO;
  */
 public class RobotContainer {
   // The robot's subsystems
-//   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-//   private static Gyro m_gyro = new Gyro(); 
+  private final DriveSubsystem m_robotDrive = new DriveSubsystem();
+  private static Gyro m_gyro = new Gyro(); 
   public boolean fieldOrientedDrive = false;
   public static CommandSelector angleHeight = CommandSelector.INTAKE;
 
   public static Shooter m_shooter;
-  // public static Intake m_intake;
-  // public static Arm m_arm;
+  public static Intake m_intake;
+  public static Arm m_arm;
  
 
   // The driver's controller
@@ -82,20 +82,20 @@ public class RobotContainer {
   //construct subsystems
   private void setUpSubsystems() {
     //m_robotDrive = new DriveSubsystem();
-    //m_gyro = new Gyro(); 
+    m_gyro = new Gyro(); 
     //set up IOs
     ShooterIO shooterIO;
-    // ArmIO armIO;
-    // IntakeIO intakeIO;
+    ArmIO armIO;
+    IntakeIO intakeIO;
    
     //IOs currently always real
-    // intakeIO = new RealIntake();
-    // armIO = new RealArm();
+    intakeIO = new RealIntake();
+    armIO = new RealArm();
     shooterIO = new RealShooter();
 
     //initialize subsystems
-    // m_intake = new Intake(intakeIO);  
-    // m_arm = new Arm(armIO);
+    m_intake = new Intake(intakeIO);  
+    m_arm = new Arm(armIO);
     m_shooter = new Shooter(shooterIO);
   }
 
@@ -103,18 +103,18 @@ public class RobotContainer {
   private void configureDefaultCommands() {
     //default command for the shooter: setting speed to number input from the smart dashboard
     m_shooter.setDefaultCommand(
-        new InstantCommand(
-            () -> m_shooter.setMotor(SmartDashboard.getNumber("Shoot speed", 0)),
+        new RunCommand(
+            () -> m_shooter.setMotor(0),
             m_shooter));
 
     //default command for intake: do nothing
-    // m_intake.setDefaultCommand(
-    //     new InstantCommand(
-    //         () -> m_intake.setMotor(0),
-    //         m_intake));
+    m_intake.setDefaultCommand(
+        new RunCommand(
+            () -> m_intake.setMotor(0),
+            m_intake));
     
     //default command for drivetrain: drive based on controller inputs
-    // m_robotDrive.setDefaultCommand(
+    m_robotDrive.setDefaultCommand(
     //     // The left stick controls translation of the robot.
     //     // Turning is controlled by the X axis of the right stick.
     //     new RunCommand(
@@ -125,13 +125,13 @@ public class RobotContainer {
     //             fieldOrientedDrive, false),
     //         m_robotDrive));
         //this version only goes straight (for testing)
-        // new RunCommand(
-        //     () -> m_robotDrive.drive(
-        //         -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
-        //         0,
-        //         0,
-        //         fieldOrientedDrive, false),
-        //     m_robotDrive));
+        new RunCommand(
+            () -> m_robotDrive.drive(
+                0,
+                0,
+                0,
+                fieldOrientedDrive, false),
+            m_robotDrive));
   }
 
   /**
@@ -164,18 +164,18 @@ public class RobotContainer {
     //         () -> m_gyro.resetYaw(), m_gyro));  
     
     new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
-        .whileTrue(new InstantCommand(
-        () -> m_shooter.setMotor(0.8)));
+        .whileTrue(new RunCommand(
+        () -> m_shooter.setMotor(1)));
     
-    //Left trigger to intake
-    // new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1)
-    //     .whileTrue(new InstantCommand(
-    //     () -> m_intake.setMotor(1)));
+    // Left trigger to intake
+    new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1)
+        .whileTrue(new RunCommand(
+        () -> m_intake.setMotor(0.8)));
 
-    // //Right trigger to outtake
-    // new Trigger(() -> m_driverController.getRawAxis(Axis.kRightTrigger.value) > 0.1)
-    //     .whileTrue(new InstantCommand(
-    //     () -> m_intake.setMotor(-1)));
+    //Right trigger to outtake
+    new Trigger(() -> m_driverController.getRawAxis(Axis.kRightTrigger.value) > 0.1)
+        .whileTrue(new RunCommand(
+        () -> m_intake.setMotor(-0.3)));
     
     // //Right stick up to move arm up
     // new Trigger(() -> m_driverController.getRawAxis(Axis.kRightY.value) < -0.1)
