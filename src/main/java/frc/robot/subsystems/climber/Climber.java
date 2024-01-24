@@ -1,15 +1,20 @@
 package frc.robot.subsystems.climber;
 
+import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.ClimberConstants;
+import frc.utils.MotorUtil;
+import edu.wpi.first.units.Units; //may need for conversions (rotations to inches)
 
 public class Climber extends SubsystemBase {
     private CANSparkMax leftMotorController;
@@ -17,6 +22,7 @@ public class Climber extends SubsystemBase {
     private RelativeEncoder leftEncoder, rightEncoder;
     private SparkPIDController leftPIDController, rightPIDController;
 
+    // get info on slew rate and what motors are doing
     public static final GenericEntry slewRate = Shuffleboard.getTab("Params").addPersistent("Climber Slew Rate", 5.0)
             .getEntry();
     public static final GenericEntry leftClimberMotor = Shuffleboard.getTab("Driver")
@@ -39,16 +45,10 @@ public class Climber extends SubsystemBase {
 
     public Climber() {
         // initialize motor controllers
-        leftMotorController = new CANSparkMax(ClimberConstants.LEFT_CLIMBER_MOTOR_ID, MotorType.kBrushless);
-        rightMotorController = new CANSparkMax(ClimberConstants.RIGHT_CLIMBER_MOTOR_ID, MotorType.kBrushless);
-
-        // restore factory settings to reset to a known state
-        leftMotorController.restoreFactoryDefaults();
-        rightMotorController.restoreFactoryDefaults();
-
-        // set climber motors to coast mode
-        leftMotorController.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        rightMotorController.setIdleMode(CANSparkMax.IdleMode.kBrake);
+        leftMotorController = MotorUtil.createSparkMAX(ClimberConstants.LEFT_CLIMBER_MOTOR_ID, MotorType.kBrushless, 0,
+                true, 0.0);
+        rightMotorController = MotorUtil.createSparkMAX(ClimberConstants.RIGHT_CLIMBER_MOTOR_ID, MotorType.kBrushless,
+                0, true, 0.0);
 
         // initialize motor encoder
         leftEncoder = leftMotorController.getEncoder();
@@ -77,9 +77,11 @@ public class Climber extends SubsystemBase {
         leftMotorController.setInverted(false);
         rightMotorController.setInverted(false);
 
+        // reset encoders to zero
         leftEncoder.setPosition(0);
         rightEncoder.setPosition(0);
 
+        // get info on climber slew rate
         SmartDashboard.putNumber("Climber Slew Rate",
                 SmartDashboard.getNumber("Climber Slew Rate", ClimberConstants.CLIMBER_SLEW));
         filter = new SlewRateLimiter(SmartDashboard.getNumber("Climber Slew Rate", ClimberConstants.CLIMBER_SLEW));
@@ -89,6 +91,7 @@ public class Climber extends SubsystemBase {
     }
 
     @Override
+
     public void periodic() {
         // This method will be called once per scheduler run
         // SmartDashboard.putBoolean("Left Climber Extended", this.isLeftExtended());
@@ -98,18 +101,54 @@ public class Climber extends SubsystemBase {
 
     }
 
-    public void setLeftSpeed(double speed) {
-        speed = filter.calculate(speed);
-        leftMotorController.set(speed);
-        leftClimberMotor.setDouble(speed);
+    // basic climbing command
+    public void setLeftMotor(double speed) {
+        if (isLeftRetracted()) {
+            leftMotorController.set(0);
+            leftClimberMotor.setDouble(0);
+        } else {
+            speed = filter.calculate(speed);
+            leftMotorController.set(speed);
+            leftClimberMotor.setDouble(speed);
+        }
+
     }
 
-    public void setRightSpeed(double speed) {
-        speed = filter.calculate(speed);
-        rightMotorController.set(speed);
-        // SmartDashboard.putNumber("Climber speed ", speed);
-        rightClimberMotor.setDouble(speed);
+    // climbing command using pid
+    public void setLeftSpeed(double setpoint) {
+        if (isLeftRetracted()) {
+            leftMotorController.set(0);
+            leftClimberMotor.setDouble(0);
+        } else {
 
+            leftPIDController.setReference(setpoint, CANSparkBase.ControlType.kPosition);
+            // SmartDashboard.putNumber("Climber speed ", speed);
+        }
+    }
+
+    // basic climbing command
+    public void setRightMotor(double speed) {
+        if (isRightRetracted()) {
+            rightMotorController.set(0);
+            rightClimberMotor.setDouble(0);
+        } else {
+            speed = filter.calculate(speed);
+            rightMotorController.set(speed);
+            rightClimberMotor.setDouble(speed);
+        }
+
+    }
+
+    // climbing command using pid
+    public void setRightSpeed(double setpoint) {
+        if (isRightRetracted()) {
+            rightMotorController.set(0);
+            rightClimberMotor.setDouble(0);
+        } else {
+
+            rightPIDController.setReference(setpoint, CANSparkBase.ControlType.kPosition);
+            // SmartDashboard.putNumber("Climber speed ", speed);
+        }
     }
 
     public boolean isLeftExtended() {
