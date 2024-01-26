@@ -12,7 +12,8 @@ import frc.utils.MotorUtil;
 public class RealArm implements ArmIO {
     private static CANSparkMax armMotorControllerLeft;
     private static CANSparkMax armMotorControllerRight;
-    public static RelativeEncoder armEncoder;
+    public static RelativeEncoder armEncoderLeft;
+    public static RelativeEncoder armEncoderRight;
     public static DutyCycleEncoder armAbsoluteEncoder;
 
     public RealArm() {
@@ -22,12 +23,16 @@ public class RealArm implements ArmIO {
             true, true, 0.75);
          armMotorControllerRight = MotorUtil.createSparkMAX(6, MotorType.kBrushless, Constants.NEO_CURRENT_LIMIT, 
             true, true, 0.75);
-        armEncoder = armMotorControllerLeft.getEncoder();
+        armEncoderLeft = armMotorControllerLeft.getEncoder();
+        armEncoderRight = armMotorControllerRight.getEncoder();
         
-        armEncoder.setPositionConversionFactor(ArmConstants.RADIANS_PER_REVOLUTION);
-        armEncoder.setVelocityConversionFactor(ArmConstants.RADIANS_PER_REVOLUTION / 60);
+        armEncoderLeft.setPositionConversionFactor(ArmConstants.RADIANS_PER_REVOLUTION);
+        armEncoderLeft.setVelocityConversionFactor(ArmConstants.RADIANS_PER_REVOLUTION / 60);
+        armEncoderRight.setPositionConversionFactor(ArmConstants.RADIANS_PER_REVOLUTION);
+        armEncoderRight.setVelocityConversionFactor(ArmConstants.RADIANS_PER_REVOLUTION / 60);
 
-        armEncoder.setPosition(ArmConstants.INITIAL_OFFSET);
+        armEncoderLeft.setPosition(ArmConstants.INITIAL_OFFSET);
+        armEncoderRight.setPosition(ArmConstants.INITIAL_OFFSET);
     }
 
     public double getAbsoluteEncoderPosition() {
@@ -42,22 +47,24 @@ public class RealArm implements ArmIO {
     @Override
     public double getEncoderPosition() {
        //return getAbsoluteEncoderPosition();
-        return armEncoder.getPosition();
+        return armEncoderLeft.getPosition();
     }
 
     @Override
     public double getEncoderSpeed() {
-        return armEncoder.getVelocity();
+        return armEncoderLeft.getVelocity();
     }
 
     @Override
     public void setSpeed(double speed) {
         armMotorControllerLeft.set(speed);
+        armMotorControllerRight.set(speed);
     }
 
     @Override
     public void setPosition(double position) {
-        armEncoder.setPosition(position);
+        armEncoderLeft.setPosition(position);
+        armEncoderRight.setPosition(position);
     }
 
     @Override
