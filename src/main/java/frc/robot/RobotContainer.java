@@ -41,170 +41,161 @@ import frc.robot.subsystems.shooter.ShooterIO;
  * (including subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-  // The robot's subsystems
-  // private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  // private static Gyro m_gyro = new Gyro();
-  public boolean fieldOrientedDrive = false;
+    // The robot's subsystems
+    // private final DriveSubsystem m_robotDrive = new DriveSubsystem();
+    // private static Gyro m_gyro = new Gyro();
+    public boolean fieldOrientedDrive = false;
 
-  public static Shooter shooter;
-  public static Climber climber;
+    public static Shooter shooter;
+    public static Climber climber;
 
-  // The driver's controller
-  XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
+    // The driver's controller
+    XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
 
-  /**
-   * The container for the robot. Contains subsystems, OI devices, and commands.
-   */
-  public RobotContainer() {
-    // Configure the button bindings
-    SmartDashboard.putNumber("Shoot speed", SmartDashboard.getNumber("Shoot speed", 0));
-    // setUpShooter();
-    setUpClimber();
-    configureButtonBindings();
+    /**
+     * The container for the robot. Contains subsystems, OI devices, and commands.
+     */
+    public RobotContainer() {
+        // Configure the button bindings
+        SmartDashboard.putNumber("Shoot speed", SmartDashboard.getNumber("Shoot speed", 0));
+        // setUpShooter();
+        setUpClimber();
+        configureButtonBindings();
 
-    shooter.setDefaultCommand(
-        new InstantCommand(
-            () -> shooter.setMotor(SmartDashboard.getNumber("Shoot speed", 0)), shooter));
+        shooter.setDefaultCommand(
+                new InstantCommand(
+                        () -> shooter.setMotor(SmartDashboard.getNumber("Shoot speed", 0)), shooter));
 
-    // Configure default commands
-    // m_robotDrive.setDefaultCommand(
-    // // The left stick controls translation of the robot.
-    // // Turning is controlled by the X axis of the right stick.
-    // new RunCommand(
-    // () -> m_robotDrive.drive(
-    // -MathUtil.applyDeadband(m_driverController.getLeftY(),
-    // OIConstants.kDriveDeadband),
-    // -MathUtil.applyDeadband(m_driverController.getLeftX(),
-    // OIConstants.kDriveDeadband),
-    // -MathUtil.applyDeadband(m_driverController.getRightX(),
-    // OIConstants.kDriveDeadband),
-    // fieldOrientedDrive, false),
-    // m_robotDrive));
-    // new RunCommand(
-    // () -> m_robotDrive.drive(
-    // -MathUtil.applyDeadband(m_driverController.getLeftY(),
-    // OIConstants.kDriveDeadband),
-    // 0,
-    // 0,
-    // fieldOrientedDrive, false),
-    // m_robotDrive));
-  }
+        // Configure default commands
+        // m_robotDrive.setDefaultCommand(
+        // // The left stick controls translation of the robot.
+        // // Turning is controlled by the X axis of the right stick.
+        // new RunCommand(
+        // () -> m_robotDrive.drive(
+        // -MathUtil.applyDeadband(m_driverController.getLeftY(),
+        // OIConstants.kDriveDeadband),
+        // -MathUtil.applyDeadband(m_driverController.getLeftX(),
+        // OIConstants.kDriveDeadband),
+        // -MathUtil.applyDeadband(m_driverController.getRightX(),
+        // OIConstants.kDriveDeadband),
+        // fieldOrientedDrive, false),
+        // m_robotDrive));
+        // new RunCommand(
+        // () -> m_robotDrive.drive(
+        // -MathUtil.applyDeadband(m_driverController.getLeftY(),
+        // OIConstants.kDriveDeadband),
+        // 0,
+        // 0,
+        // fieldOrientedDrive, false),
+        // m_robotDrive));
+    }
 
-  /**
-   * Use this method to define your button->command mappings. Buttons can be
-   * created by
-   * instantiating a {@link edu.wpi.first.wpilibj.GenericHID} or one of its
-   * subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling
-   * passing it to a
-   * {@link JoystickButton}.
-   */
-  private void configureButtonBindings() {
-    // right bumper?
-    // new JoystickButton(m_driverController, XboxController.Button.kX.value)
-    // .whileTrue(new RunCommand(
-    // () -> m_robotDrive.setX(),
-    // m_robotDrive));
+    /**
+     * Use this method to define your button->command mappings. Buttons can be
+     * created by
+     * instantiating a {@link edu.wpi.first.wpilibj.GenericHID} or one of its
+     * subclasses ({@link
+     * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling
+     * passing it to a
+     * {@link JoystickButton}.
+     */
+    private void configureButtonBindings() {
+        // right bumper?
+        // new JoystickButton(m_driverController, XboxController.Button.kX.value)
+        // .whileTrue(new RunCommand(
+        // () -> m_robotDrive.setX(),
+        // m_robotDrive));
 
-    new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
-        .whileTrue(new InstantCommand(
-            () -> climber.setLeftMotor(0.2))
+            new JoystickButton(m_driverController, XboxController.Button.kLeftStick.value)
+                    .whileTrue(
+                    new RunCommand(
+                            () -> climber.setLeftSpeed(0.2))
 
-        );
+                    );
 
-    new JoystickButton(m_driverController, XboxController.Button.kRightBumper.value)
-        .whileTrue(new InstantCommand(
-            () -> climber.setRightMotor(0.2))
+            new JoystickButton(m_driverController, XboxController.Button.kRightStick.value)
+                    .whileTrue(new RunCommand(
+                            () -> climber.setRightSpeed(0.2))
 
-        );
-    new JoystickButton(m_driverController, XboxController.Axis.kLeftTrigger.value)
-        .whileTrue(new InstantCommand(
-            () -> climber.setLeftMotor(-0.2))
+                    );
 
-        );
-    new JoystickButton(m_driverController, XboxController.Axis.kRightTrigger.value)
-        .whileTrue(new InstantCommand(
-            () -> climber.setRightMotor(-0.2))
+        // new JoystickButton(m_driverController, XboxController.Button.kY.value)
+        // .whileTrue(new RunCommand(
+        // () -> m_robotDrive.setZero(),
+        // m_robotDrive));
 
-        );
+        new JoystickButton(m_driverController, XboxController.Button.kA.value).onTrue(
+                new InstantCommand(
+                        () -> fieldOrientedDrive = !fieldOrientedDrive));
 
-    // new JoystickButton(m_driverController, XboxController.Button.kY.value)
-    // .whileTrue(new RunCommand(
-    // () -> m_robotDrive.setZero(),
-    // m_robotDrive));
+        // new JoystickButton(m_driverController, XboxController.Button.kB.value)
+        // .onTrue(new InstantCommand(
+        // () -> m_gyro.resetYaw(), m_gyro));
 
-    new JoystickButton(m_driverController, XboxController.Button.kA.value).onTrue(
-        new InstantCommand(
-            () -> fieldOrientedDrive = !fieldOrientedDrive));
+        new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
+                .whileTrue(new InstantCommand(
+                        () -> shooter.setMotor(0)));
+    }
 
-    // new JoystickButton(m_driverController, XboxController.Button.kB.value)
-    // .onTrue(new InstantCommand(
-    // () -> m_gyro.resetYaw(), m_gyro));
+    private void setUpShooter() {
 
-    new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
-        .whileTrue(new InstantCommand(
-            () -> shooter.setMotor(0)));
-  }
+        ShooterIO shooterIO;
 
-  private void setUpShooter() {
+        shooterIO = new RealShooter();
 
-    ShooterIO shooterIO;
+        shooter = new Shooter(shooterIO);
+    }
 
-    shooterIO = new RealShooter();
+    private void setUpClimber() {
 
-    shooter = new Shooter(shooterIO);
-  }
+        climber = new Climber();
+    }
+    /**
+     * Use this to pass the autonomous command to the main {@link Robot} class.
+     *
+     * @return the command to run in autonomous
+     */
+    // public Command getAutonomousCommand() {
+    // // Create config for trajectory
+    // TrajectoryConfig config = new TrajectoryConfig(
+    // AutoConstants.kMaxSpeedMetersPerSecond,
+    // AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+    // // Add kinematics to ensure max speed is actually obeyed
+    // .setKinematics(DriveConstants.kDriveKinematics);
 
-  private void setUpClimber() {
+    // // An example trajectory to follow. All units in meters.
+    // Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
+    // // Start at the origin facing the +X direction
+    // new Pose2d(0, 0, new Rotation2d(0)),
+    // // Pass through these two interior waypoints, making an 's' curve path
+    // List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
+    // // End 3 meters straight ahead of where we started, facing forward
+    // new Pose2d(3, 0, new Rotation2d(0)),
+    // config);
 
-    climber = new Climber();
-  }
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
-  // public Command getAutonomousCommand() {
-  // // Create config for trajectory
-  // TrajectoryConfig config = new TrajectoryConfig(
-  // AutoConstants.kMaxSpeedMetersPerSecond,
-  // AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-  // // Add kinematics to ensure max speed is actually obeyed
-  // .setKinematics(DriveConstants.kDriveKinematics);
+    // var thetaController = new ProfiledPIDController(
+    // AutoConstants.kPThetaController, 0, 0,
+    // AutoConstants.kThetaControllerConstraints);
+    // thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-  // // An example trajectory to follow. All units in meters.
-  // Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-  // // Start at the origin facing the +X direction
-  // new Pose2d(0, 0, new Rotation2d(0)),
-  // // Pass through these two interior waypoints, making an 's' curve path
-  // List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-  // // End 3 meters straight ahead of where we started, facing forward
-  // new Pose2d(3, 0, new Rotation2d(0)),
-  // config);
+    // SwerveControllerCommand swerveControllerCommand = new
+    // SwerveControllerCommand(
+    // exampleTrajectory,
+    // m_robotDrive::getPose, // Functional interface to feed supplier
+    // DriveConstants.kDriveKinematics,
 
-  // var thetaController = new ProfiledPIDController(
-  // AutoConstants.kPThetaController, 0, 0,
-  // AutoConstants.kThetaControllerConstraints);
-  // thetaController.enableContinuousInput(-Math.PI, Math.PI);
+    // // Position controllers
+    // new PIDController(AutoConstants.kPXController, 0, 0),
+    // new PIDController(AutoConstants.kPYController, 0, 0),
+    // thetaController,
+    // m_robotDrive::setModuleStates,
+    // m_robotDrive);
 
-  // SwerveControllerCommand swerveControllerCommand = new
-  // SwerveControllerCommand(
-  // exampleTrajectory,
-  // m_robotDrive::getPose, // Functional interface to feed supplier
-  // DriveConstants.kDriveKinematics,
+    // // Reset odometry to the starting pose of the trajectory.
+    // m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
 
-  // // Position controllers
-  // new PIDController(AutoConstants.kPXController, 0, 0),
-  // new PIDController(AutoConstants.kPYController, 0, 0),
-  // thetaController,
-  // m_robotDrive::setModuleStates,
-  // m_robotDrive);
-
-  // // Reset odometry to the starting pose of the trajectory.
-  // m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
-
-  // // Run path following command, then stop at the end.
-  // return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0,
-  // false, false));
-  // }
+    // // Run path following command, then stop at the end.
+    // return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0,
+    // false, false));
+    // }
 }

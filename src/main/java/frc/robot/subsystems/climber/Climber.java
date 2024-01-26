@@ -2,6 +2,7 @@ package frc.robot.subsystems.climber;
 
 import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.ControlType;
@@ -14,7 +15,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.ClimberConstants;
 import frc.utils.MotorUtil;
-import edu.wpi.first.units.Units; //may need for conversions (rotations to inches)
+import java.lang.Math;
 
 public class Climber extends SubsystemBase {
     private CANSparkMax leftMotorController;
@@ -46,9 +47,9 @@ public class Climber extends SubsystemBase {
     public Climber() {
         // initialize motor controllers
         leftMotorController = MotorUtil.createSparkMAX(ClimberConstants.LEFT_CLIMBER_MOTOR_ID, MotorType.kBrushless, 0,
-                true, 0.0);
+                true, 0.0);//make slew rate not zero 
         rightMotorController = MotorUtil.createSparkMAX(ClimberConstants.RIGHT_CLIMBER_MOTOR_ID, MotorType.kBrushless,
-                0, true, 0.0);
+                0, true, 0.0);//make slew rate not zero 
 
         // initialize motor encoder
         leftEncoder = leftMotorController.getEncoder();
@@ -94,15 +95,12 @@ public class Climber extends SubsystemBase {
 
     public void periodic() {
         // This method will be called once per scheduler run
-        // SmartDashboard.putBoolean("Left Climber Extended", this.isLeftExtended());
-        // SmartDashboard.putBoolean("Right Climber Extended", this.isRightExtended());
         SmartDashboard.putNumber("Left Climber Height", getLeftEncoderPosition());
         SmartDashboard.putNumber("Right Climber Hieght", getRightEncoderPosition());
-
     }
 
-    // basic climbing command
-    public void setLeftMotor(double speed) {
+    // left basic climbing with just speed 
+    public void setLeftSpeed(double speed) {
         if (isLeftRetracted()) {
             leftMotorController.set(0);
             leftClimberMotor.setDouble(0);
@@ -114,8 +112,8 @@ public class Climber extends SubsystemBase {
 
     }
 
-    // climbing command using pid
-    public void setLeftSpeed(double setpoint) {
+    // left climbing with setpoint
+    public void setLeftMotor(double setpoint) {
         if (isLeftRetracted()) {
             leftMotorController.set(0);
             leftClimberMotor.setDouble(0);
@@ -126,8 +124,8 @@ public class Climber extends SubsystemBase {
         }
     }
 
-    // basic climbing command
-    public void setRightMotor(double speed) {
+    // right basic climbing with just speed
+    public void setRightSpeed(double speed) {
         if (isRightRetracted()) {
             rightMotorController.set(0);
             rightClimberMotor.setDouble(0);
@@ -139,8 +137,8 @@ public class Climber extends SubsystemBase {
 
     }
 
-    // climbing command using pid
-    public void setRightSpeed(double setpoint) {
+    // right climing with setpoint
+    public void setRightMotor(double setpoint) {
         if (isRightRetracted()) {
             rightMotorController.set(0);
             rightClimberMotor.setDouble(0);
@@ -173,12 +171,17 @@ public class Climber extends SubsystemBase {
 
     public double getLeftEncoderPosition() {
         // gets position in inches
-        return leftEncoder.getPosition();
+        double numRotations = (double) leftEncoder.getPosition();
+        double distance = (double) (numRotations * 2 * (Math.PI) * 0.375);
+        return distance;
     }
 
     public double getRightEncoderPosition() {
         // gets position in inches
-        return rightEncoder.getPosition();
+        double numRotations = (double) rightEncoder.getPosition();
+        double distance = (double) (numRotations * 2 * (Math.PI) * 0.375);
+        return distance;
+
     }
 
 }
