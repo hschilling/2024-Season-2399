@@ -18,10 +18,10 @@ public class Arm extends ProfiledPIDSubsystem {
   /** Creates a new Arm. */
   private ArmIO armIO;
   private double targetAngle = - Math.PI/2; 
+  //PID values
   //private static final double feedForward = 0.133;
   // private static final double feedForward = 0.14285;
   private static final double feedForward = 0.1;
-
   // private static final double kpPos = 0.8;
   private static final double kpPos = 0;
 
@@ -29,6 +29,7 @@ public class Arm extends ProfiledPIDSubsystem {
   private static final double max_vel = 1.5;  // rad/s
   private static final double max_accel = 2.7;  // rad/s/s
   private static final Constraints constraints = new Constraints(max_vel, max_accel);
+  //Gravity compensation
   // private static double gravityCompensation = 0.04;
   private static double gravityCompensation = SmartDashboard.getNumber("Arm kG", 0);
 
@@ -58,7 +59,9 @@ public class Arm extends ProfiledPIDSubsystem {
   }
 
   public void setSpeed(double speed) {
+    //Clamp speed between -0.5 and 0.5, for safety. 
     speed = Math.max(Math.min(speed, 0.5), -0.5);
+    //Sets speed of the arm, no gravity compensation or PID
     armIO.setSpeed(speed);
     SmartDashboard.putNumber("arm/speed", speed);
   }
@@ -73,7 +76,7 @@ public class Arm extends ProfiledPIDSubsystem {
   }
 
   public void setSpeedGravityCompensation(double speed) {
-    // calls set speed function in the file that does armIO.setSpeed after capping speed
+    // sets the speed with gravity compensation, no PID
     setSpeed(speed + gravityCompensation * Math.cos(getEncoderPosition()));
   }
 
@@ -81,6 +84,7 @@ public class Arm extends ProfiledPIDSubsystem {
     return armIO.getArmCurrent();
   }
 
+  //Uses the output of the profiled PID controller to set the speed
   @Override
   protected void useOutput(double output, State setpoint) {
     SmartDashboard.putNumber("arm/setpoint pos", setpoint.position);
@@ -92,7 +96,7 @@ public class Arm extends ProfiledPIDSubsystem {
     speed += gravityCompensation * Math.cos(getEncoderPosition()); 
     // Add PID output to speed to account for error in arm
     speed += output;
-    // calls set speed function in the file that does armIO.setSpeed after capping speed
+    // calls set speed function in the file that does armIO.setSpeed 
     setSpeed(speed);
   }
 

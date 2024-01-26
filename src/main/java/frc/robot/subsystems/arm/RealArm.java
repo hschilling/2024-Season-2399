@@ -19,18 +19,22 @@ public class RealArm implements ArmIO {
     public RealArm() {
         // armAbsoluteEncoder = new DutyCycleEncoder(0);
         //Higher slew rate of .75 seconds from 0 to 100% (sparkmax thinks we use this) translates to .2 seconds from 0 to 20% (what we actually use)
+        //Make the arm motor controllers 
         armMotorControllerLeft = MotorUtil.createSparkMAX(7, MotorType.kBrushless, Constants.NEO_CURRENT_LIMIT, 
             true, true, 0.75);
          armMotorControllerRight = MotorUtil.createSparkMAX(6, MotorType.kBrushless, Constants.NEO_CURRENT_LIMIT, 
             true, true, 0.75);
+        //Make the arm encoders
         armEncoderLeft = armMotorControllerLeft.getEncoder();
         armEncoderRight = armMotorControllerRight.getEncoder();
         
+        //Position and velocity conversion factors
         armEncoderLeft.setPositionConversionFactor(ArmConstants.RADIANS_PER_REVOLUTION);
         armEncoderLeft.setVelocityConversionFactor(ArmConstants.RADIANS_PER_REVOLUTION / 60);
         armEncoderRight.setPositionConversionFactor(ArmConstants.RADIANS_PER_REVOLUTION);
         armEncoderRight.setVelocityConversionFactor(ArmConstants.RADIANS_PER_REVOLUTION / 60);
 
+        //sets the encoder to the correct initial value (the offset). does not actually move the arm. 
         armEncoderLeft.setPosition(ArmConstants.INITIAL_OFFSET);
         armEncoderRight.setPosition(ArmConstants.INITIAL_OFFSET);
     }
