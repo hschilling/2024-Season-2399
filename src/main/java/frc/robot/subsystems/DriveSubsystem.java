@@ -169,7 +169,7 @@ public class DriveSubsystem extends SubsystemBase {
     else if(rotRate == 0) {
       newRotRate = 0;
       
-      if(Math.abs(desiredAngle - currentAngle) > Math.toRadians(0.1)) {
+      if(Math.abs(desiredAngle - currentAngle) > Math.toRadians(1)) {
         newRotRate = (3.0 * (desiredAngle - currentAngle)) % (2 * Math.PI) / (2 * Math.PI);
       }
     } 

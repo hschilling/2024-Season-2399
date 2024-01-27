@@ -14,7 +14,7 @@ public class RealArm implements ArmIO {
     private static CANSparkMax armMotorControllerRight;
     public static RelativeEncoder armEncoderLeft;
     public static RelativeEncoder armEncoderRight;
-    public static DutyCycleEncoder armAbsoluteEncoder;
+    // public static DutyCycleEncoder armAbsoluteEncoder;
 
     public RealArm() {
         // armAbsoluteEncoder = new DutyCycleEncoder(0);
@@ -39,9 +39,9 @@ public class RealArm implements ArmIO {
         armEncoderRight.setPosition(ArmConstants.INITIAL_OFFSET);
     }
 
-    public double getAbsoluteEncoderPosition() {
-        return -(armAbsoluteEncoder.getAbsolutePosition() - 0.88) * 2 * Math.PI / 3;
-    }
+    // public double getAbsoluteEncoderPosition() {
+    //     return -(armAbsoluteEncoder.getAbsolutePosition() - 0.88) * 2 * Math.PI / 3;
+    // }
 
     @Override
     public void periodicUpdate() {

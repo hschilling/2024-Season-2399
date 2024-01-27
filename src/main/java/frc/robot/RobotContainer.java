@@ -57,7 +57,7 @@ public class RobotContainer {
   // The robot's subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
   private static Gyro m_gyro = new Gyro(); 
-  public boolean fieldOrientedDrive = false;
+  public boolean fieldOrientedDrive = true;
   public static CommandSelector angleHeight = CommandSelector.INTAKE;
 
   public static Shooter m_shooter;
@@ -117,19 +117,11 @@ public class RobotContainer {
     m_robotDrive.setDefaultCommand(
     //     // The left stick controls translation of the robot.
     //     // Turning is controlled by the X axis of the right stick.
-    //     new RunCommand(
-    //         () -> m_robotDrive.drive(
-    //             -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
-    //             -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
-    //             -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
-    //             fieldOrientedDrive, false),
-    //         m_robotDrive));
-        //this version only goes straight (for testing)
         new RunCommand(
             () -> m_robotDrive.drive(
-                0,
-                0,
-                0,
+                -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
                 fieldOrientedDrive, false),
             m_robotDrive));
   }
@@ -144,28 +136,29 @@ public class RobotContainer {
    * {@link JoystickButton}.
    */
   private void configureButtonBindings() {
-    //right bumper?
-    // new JoystickButton(m_driverController, XboxController.Button.kX.value)
-    //     .whileTrue(new RunCommand(
-    //         () -> m_robotDrive.setX(),
-    //         m_robotDrive));
+
+  
+    new JoystickButton(m_driverController, XboxController.Button.kX.value)
+        .whileTrue(new RunCommand(
+            () -> m_robotDrive.setX(),
+            m_robotDrive));
     
-    // new JoystickButton(m_driverController, XboxController.Button.kY.value)
-    //     .whileTrue(new RunCommand(
-    //         () -> m_robotDrive.setZero(),
-    //         m_robotDrive));
+    new JoystickButton(m_driverController, XboxController.Button.kY.value)
+        .whileTrue(new RunCommand(
+            () -> m_robotDrive.setZero(),
+            m_robotDrive));
 
     new JoystickButton(m_driverController, XboxController.Button.kA.value)
         .onTrue(new InstantCommand(
         () -> fieldOrientedDrive = !fieldOrientedDrive));
 
-    // new JoystickButton(m_driverController, XboxController.Button.kB.value)
-    //     .onTrue(new InstantCommand(
-    //         () -> m_gyro.resetYaw(), m_gyro));  
+    new JoystickButton(m_driverController, XboxController.Button.kB.value)
+        .onTrue(new InstantCommand(
+            () -> m_gyro.resetYaw(), m_gyro));  
     
     new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
         .whileTrue(new RunCommand(
-        () -> m_shooter.setMotor(1)));
+        () -> m_shooter.setMotor(0.35)));
     
     // Left trigger to intake
     new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1)
