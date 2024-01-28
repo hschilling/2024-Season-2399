@@ -7,6 +7,8 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
+
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -22,6 +24,7 @@ public class Climber extends SubsystemBase {
     private CANSparkMax rightMotorController;
     private RelativeEncoder leftEncoder, rightEncoder;
     private SparkPIDController leftPIDController, rightPIDController;
+    private Debouncer leftDebouncer, rightDebouncer;
 
     // get info on slew rate and what motors are doing
     public static final GenericEntry slewRate = Shuffleboard.getTab("Params").addPersistent("Climber Slew Rate", 5.0)
@@ -47,13 +50,21 @@ public class Climber extends SubsystemBase {
     public Climber() {
         // initialize motor controllers
         leftMotorController = MotorUtil.createSparkMAX(ClimberConstants.LEFT_CLIMBER_MOTOR_ID, MotorType.kBrushless, 0,
-                true, 0.0);//make slew rate not zero 
+                true, 0.1);
         rightMotorController = MotorUtil.createSparkMAX(ClimberConstants.RIGHT_CLIMBER_MOTOR_ID, MotorType.kBrushless,
-                0, true, 0.0);//make slew rate not zero 
+                0, true, 0.1);
 
         // initialize motor encoder
         leftEncoder = leftMotorController.getEncoder();
         rightEncoder = rightMotorController.getEncoder();
+
+        // initialize debouncers
+        leftDebouncer = new Debouncer(0.15);
+        rightDebouncer = new Debouncer(0.15);
+
+        //converts encoder values for correct setpoint units
+        leftEncoder.setPositionConversionFactor(1 / ( 2 * (Math.PI) * 0.375));
+        rightEncoder.setPositionConversionFactor(1 / ( 2 * (Math.PI) * 0.375));
 
         // initialize motor pid controllers
         leftPIDController = leftMotorController.getPIDController();
@@ -99,7 +110,7 @@ public class Climber extends SubsystemBase {
         SmartDashboard.putNumber("Right Climber Hieght", getRightEncoderPosition());
     }
 
-    // left basic climbing with just speed 
+    // left basic climbing with just speed
     public void setLeftSpeed(double speed) {
         if (isLeftRetracted()) {
             leftMotorController.set(0);
@@ -114,7 +125,7 @@ public class Climber extends SubsystemBase {
 
     // left climbing with setpoint
     public void setLeftMotor(double setpoint) {
-        if (isLeftRetracted()) {
+        if (isLeftRetracted() || (isLeftSideStalling() && !isRightSideStalling())) {
             leftMotorController.set(0);
             leftClimberMotor.setDouble(0);
         } else {
@@ -139,7 +150,7 @@ public class Climber extends SubsystemBase {
 
     // right climing with setpoint
     public void setRightMotor(double setpoint) {
-        if (isRightRetracted()) {
+        if (isRightRetracted() || (isRightSideStalling() && !isLeftSideStalling())) {
             rightMotorController.set(0);
             rightClimberMotor.setDouble(0);
         } else {
@@ -183,5 +194,14 @@ public class Climber extends SubsystemBase {
         return distance;
 
     }
+
+    public boolean isLeftSideStalling(){
+        return leftDebouncer.calculate(Math.abs(getLeftEncoderPosition()) < ClimberConstants.VELOCITY_THRESHHOLD);
+    }
+
+    public boolean isRightSideStalling(){
+        return rightDebouncer.calculate(Math.abs(getRightEncoderPosition()) < ClimberConstants.VELOCITY_THRESHHOLD);
+    }
+
 
 }

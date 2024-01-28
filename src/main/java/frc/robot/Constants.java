@@ -174,10 +174,13 @@ public final class Constants {
     public static final int EXTEND_PISTON = 4;
     public static final int RETRACT_PISTON = 5;
 
+    public static final double VELOCITY_THRESHHOLD = 100; 
+
   }
 
   public static final class OIConstants {
     public static final int kDriverControllerPort = 0;
+    public static final int kOperatorControllerPort = 1;
     public static final double kDriveDeadband = 0.1;
   }
 
