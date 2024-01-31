@@ -21,7 +21,7 @@ public class Arm extends ProfiledPIDSubsystem {
   //PID values
   //private static final double feedForward = 0.133;
   // private static final double feedForward = 0.14285;
-  private static final double feedForward = 0.1;
+  private static final double feedForward = 0;
   // private static final double kpPos = 0.8;
   private static final double kpPos = 0;
 
@@ -31,7 +31,7 @@ public class Arm extends ProfiledPIDSubsystem {
   private static final Constraints constraints = new Constraints(max_vel, max_accel);
   //Gravity compensation
   // private static double gravityCompensation = 0.04;
-  private static double gravityCompensation = SmartDashboard.getNumber("Arm kG", 0);
+  private static double gravityCompensation = 0.02;
 
   public Arm(ArmIO io) {
     super(new ProfiledPIDController(kpPos, 0, 0, constraints));

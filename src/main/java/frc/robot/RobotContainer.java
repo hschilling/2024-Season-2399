@@ -124,6 +124,8 @@ public class RobotContainer {
                 -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
                 fieldOrientedDrive, false),
             m_robotDrive));
+
+    m_arm.setDefaultCommand(new RunCommand(() -> m_arm.setSpeedGravityCompensation(0), m_arm));
   }
 
   /**
@@ -145,12 +147,12 @@ public class RobotContainer {
     
     new JoystickButton(m_driverController, XboxController.Button.kY.value)
         .whileTrue(new RunCommand(
-            () -> m_robotDrive.setZero(),
-            m_robotDrive));
+            () -> m_arm.setSpeedGravityCompensation(0.2),
+            m_arm));
 
     new JoystickButton(m_driverController, XboxController.Button.kA.value)
-        .onTrue(new InstantCommand(
-        () -> fieldOrientedDrive = !fieldOrientedDrive));
+        .onTrue(new RunCommand(() -> m_arm.setSpeedGravityCompensation(-0.2),
+            m_arm));
 
     new JoystickButton(m_driverController, XboxController.Button.kB.value)
         .onTrue(new InstantCommand(
