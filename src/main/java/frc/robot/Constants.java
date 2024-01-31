@@ -157,7 +157,7 @@ public final class Constants {
 
     public static final double TURTLE_ANGLE = 0.5;
 
-    public static final double RADIANS_PER_REVOLUTION = 0.0837;
+    public static final double RADIANS_PER_REVOLUTION = 2 * Math.PI / 192;
     // initial offset is 0.711 + (0.287) - (0.308)
     public static final double INITIAL_OFFSET = 0;
 

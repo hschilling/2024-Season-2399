@@ -144,10 +144,10 @@ public class RobotContainer {
         .whileTrue(new InstantCommand( () -> m_arm.setEncoderPosition()));
     
     new JoystickButton(m_driverController, XboxController.Button.kY.value)
-        .whileTrue(makeSetSpeedGravityCompensationCommand(m_arm, 0.2));
+        .whileTrue(makeSetSpeedGravityCompensationCommand(m_arm, 0.1));
 
     new JoystickButton(m_driverController, XboxController.Button.kA.value)
-        .onTrue(makeSetSpeedGravityCompensationCommand(m_arm, -0.2));
+        .onTrue(makeSetSpeedGravityCompensationCommand(m_arm, -0.1));
 
     new JoystickButton(m_driverController, XboxController.Button.kB.value)
         .onTrue(new InstantCommand(
