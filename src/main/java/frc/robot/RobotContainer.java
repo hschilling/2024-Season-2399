@@ -147,7 +147,7 @@ public class RobotContainer {
         .whileTrue(makeSetSpeedGravityCompensationCommand(m_arm, 0.1));
 
     new JoystickButton(m_driverController, XboxController.Button.kA.value)
-        .onTrue(makeSetSpeedGravityCompensationCommand(m_arm, -0.1));
+        .whileTrue(makeSetSpeedGravityCompensationCommand(m_arm, -0.1));
 
     new JoystickButton(m_driverController, XboxController.Button.kB.value)
         .onTrue(new InstantCommand(
@@ -155,7 +155,7 @@ public class RobotContainer {
     
     new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
         .whileTrue(new RunCommand(
-        () -> m_shooter.setMotor(0.35)));
+        () -> m_shooter.setMotor(1)));
     
     // Left trigger to intake
     new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1)
