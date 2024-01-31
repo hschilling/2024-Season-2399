@@ -7,4 +7,5 @@ public interface ArmIO {
     public void setPosition(double position);
     public void periodicUpdate();
     public double getArmCurrent();
+    public void setEncoderPosition();
 }

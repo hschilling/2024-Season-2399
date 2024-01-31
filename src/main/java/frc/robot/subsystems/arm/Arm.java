@@ -58,9 +58,13 @@ public class Arm extends ProfiledPIDSubsystem {
     return armIO.getEncoderSpeed();
   }
 
+  public void setEncoderPosition() {
+    armIO.setEncoderPosition();
+  }
+
   public void setSpeed(double speed) {
     //Clamp speed between -0.5 and 0.5, for safety. 
-    speed = Math.max(Math.min(speed, 0.5), -0.5);
+    // speed = Math.max(Math.min(speed, 0.5), -0.5);
     //Sets speed of the arm, no gravity compensation or PID
     armIO.setSpeed(speed);
     SmartDashboard.putNumber("arm/speed", speed);

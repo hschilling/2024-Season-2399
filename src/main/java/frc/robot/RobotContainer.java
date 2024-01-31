@@ -141,18 +141,13 @@ public class RobotContainer {
 
   
     new JoystickButton(m_driverController, XboxController.Button.kX.value)
-        .whileTrue(new RunCommand(
-            () -> m_robotDrive.setX(),
-            m_robotDrive));
+        .whileTrue(new InstantCommand( () -> m_arm.setEncoderPosition()));
     
     new JoystickButton(m_driverController, XboxController.Button.kY.value)
-        .whileTrue(new RunCommand(
-            () -> m_arm.setSpeedGravityCompensation(0.2),
-            m_arm));
+        .whileTrue(makeSetSpeedGravityCompensationCommand(m_arm, 0.2));
 
     new JoystickButton(m_driverController, XboxController.Button.kA.value)
-        .onTrue(new RunCommand(() -> m_arm.setSpeedGravityCompensation(-0.2),
-            m_arm));
+        .onTrue(makeSetSpeedGravityCompensationCommand(m_arm, -0.2));
 
     new JoystickButton(m_driverController, XboxController.Button.kB.value)
         .onTrue(new InstantCommand(
@@ -190,7 +185,7 @@ public class RobotContainer {
       );
   }
 
-  private Command makeSetSpeedGravityCompensationCommand(Arm a, double speed) {
+  private static Command makeSetSpeedGravityCompensationCommand(Arm a, double speed) {
     return new SequentialCommandGroup(
         new InstantCommand(() -> a.disable()),
         new RunCommand(() -> a.setSpeedGravityCompensation(speed), a)
