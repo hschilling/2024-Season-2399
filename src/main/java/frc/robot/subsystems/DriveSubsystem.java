@@ -97,26 +97,6 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Gyro pitch", Gyro.pitch % 360);
     SmartDashboard.putNumber("Gyro roll", Gyro.roll % 360);
     pitchRate = derivativeCalculator.calculate(getGyroPitch());
-    //Drive input log
-    SmartDashboard.putNumber("Right Front Drive Input", m_frontRight.getDriveVolts());
-    SmartDashboard.putNumber("Left Front Drive Input", m_frontLeft.getDriveVolts());
-    SmartDashboard.putNumber("Right Rear Drive Input", m_rearRight.getDriveVolts());
-    SmartDashboard.putNumber("Left Rear Drive Input", m_rearLeft.getDriveVolts());
-    //Drive output log
-    SmartDashboard.putNumber("Right Front Drive Output", m_frontRight.getDriveOutput());
-    SmartDashboard.putNumber("Left Front Drive Output", m_frontLeft.getDriveOutput());
-    SmartDashboard.putNumber("Right Rear Drive Output", m_rearRight.getDriveOutput());
-    SmartDashboard.putNumber("Left Rear Drive Output", m_rearLeft.getDriveOutput());
-    //Drive speed log
-    SmartDashboard.putNumber("Right Front Drive Speed", m_frontRight.getDriveSpeed());
-    SmartDashboard.putNumber("Left Front Drive Speed", m_frontLeft.getDriveSpeed());
-    SmartDashboard.putNumber("Right Rear Drive Speed", m_rearRight.getDriveSpeed());
-    SmartDashboard.putNumber("Left Rear Drive Speed", m_rearLeft.getDriveSpeed());
-    //Turn speed log
-    SmartDashboard.putNumber("Right Front Turn Speed", m_frontRight.getTurnAngle());
-    SmartDashboard.putNumber("Left Front Turn Speed", m_frontLeft.getTurnAngle());
-    SmartDashboard.putNumber("Right Rear Turn Speed", m_rearRight.getTurnAngle());
-    SmartDashboard.putNumber("Left Rear Turn Speed", m_rearLeft.getTurnAngle());
   }
 
   /**
@@ -162,25 +142,24 @@ public class DriveSubsystem extends SubsystemBase {
     double ySpeedCommanded;
     double currentAngle = Math.toRadians(Gyro.yaw);
 
+    //accounts for gyro resetting
     if (currentAngle == 0) {
       desiredAngle = 0;
     }
 
-    else if(rotRate == 0) {
+    //apply correction if there is no rotation input and there is either x or y input
+    else if(rotRate == 0 && (xSpeed != 0 || ySpeed != 0)) {
       newRotRate = 0;
-      
+      //correction algorithm
       if(Math.abs(desiredAngle - currentAngle) > Math.toRadians(1)) {
         newRotRate = (3.0 * (desiredAngle - currentAngle)) % (2 * Math.PI) / (2 * Math.PI);
       }
     } 
+
     else {
       newRotRate = rotRate;
       desiredAngle = currentAngle;
     }
-    SmartDashboard.putNumber("desired angle", desiredAngle);
-    SmartDashboard.putNumber("current angle", currentAngle);
-    SmartDashboard.putNumber("rotRate", rotRate);
-    SmartDashboard.putNumber("rotation rate", newRotRate);
 
     if (rateLimit) {
       // Convert XY to polar for rate limiting

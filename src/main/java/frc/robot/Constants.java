@@ -141,6 +141,9 @@ public final class Constants {
 
     public static final int SHOOT_LOW_MOTOR_ID = 5;
     public static final int SHOOT_HIGH_MOTOR_ID = 4;
+    public static final double SHOOTER_POS_CONVERSION_FACTOR = 1/(2 * Math.PI * Units.inchesToMeters(2));
+    public static final double SHOOTER_VEL_CONVERSION_FACTOR = SHOOTER_POS_CONVERSION_FACTOR / 60;
+    public static final double SHOOTER_MAX_SPEED_MPS = NEO_MAX_SPEED_RPM * SHOOTER_VEL_CONVERSION_FACTOR;
   }
 
   public static final class ArmConstants {
