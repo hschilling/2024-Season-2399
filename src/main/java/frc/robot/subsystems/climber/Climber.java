@@ -16,6 +16,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.ClimberConstants;
+import frc.robot.Constants.DriveConstants;
+import frc.robot.subsystems.intake.IntakeIO;
 import frc.utils.MotorUtil;
 import java.lang.Math;
 
@@ -48,6 +50,7 @@ public class Climber extends SubsystemBase {
     public static final double CLIMBER_MAX_RPM = 5700;
 
     public Climber() {
+
         // initialize motor controllers
         leftMotorController = MotorUtil.createSparkMAX(ClimberConstants.LEFT_CLIMBER_MOTOR_ID, MotorType.kBrushless, 0,
                 true, 0.1);
@@ -62,9 +65,9 @@ public class Climber extends SubsystemBase {
         leftDebouncer = new Debouncer(0.15);
         rightDebouncer = new Debouncer(0.15);
 
-        //converts encoder values for correct setpoint units
-        leftEncoder.setPositionConversionFactor(1 / ( 2 * (Math.PI) * 0.375));
-        rightEncoder.setPositionConversionFactor(1 / ( 2 * (Math.PI) * 0.375));
+        // converts encoder rotations to distance (meters)
+        leftEncoder.setPositionConversionFactor(1 / (2 * (Math.PI) * 0.375));
+        rightEncoder.setPositionConversionFactor(1 / (2 * (Math.PI) * 0.375));
 
         // initialize motor pid controllers
         leftPIDController = leftMotorController.getPIDController();
@@ -92,6 +95,12 @@ public class Climber extends SubsystemBase {
         // reset encoders to zero
         leftEncoder.setPosition(0);
         rightEncoder.setPosition(0);
+
+        // set encoder velocity to meters/second
+        leftEncoder.setPositionConversionFactor(1 / (2 * (Math.PI) * 0.375) / 60);
+        rightEncoder.setPositionConversionFactor(1 / (2 * (Math.PI) * 0.375) / 60);
+
+
 
         // get info on climber slew rate
         SmartDashboard.putNumber("Climber Slew Rate",
@@ -176,32 +185,26 @@ public class Climber extends SubsystemBase {
         return (rightEncoder.getPosition() < ClimberConstants.MIN_HEIGHT);
     }
 
-    public double getClimberHeight() {
-        return (leftEncoder.getPosition() + rightEncoder.getPosition()) / 2;
-    }
-
     public double getLeftEncoderPosition() {
         // gets position in inches
-        double numRotations = (double) leftEncoder.getPosition();
-        double distance = (double) (numRotations * 2 * (Math.PI) * 0.375);
+        double distance = (double) leftEncoder.getPosition();
         return distance;
     }
 
     public double getRightEncoderPosition() {
         // gets position in inches
-        double numRotations = (double) rightEncoder.getPosition();
-        double distance = (double) (numRotations * 2 * (Math.PI) * 0.375);
+        double distance = (double) rightEncoder.getPosition();
         return distance;
-
     }
 
-    public boolean isLeftSideStalling(){
-        return leftDebouncer.calculate(Math.abs(getLeftEncoderPosition()) < ClimberConstants.VELOCITY_THRESHHOLD);
+    // if the left side is stalling, tell climber to stop 
+    public boolean isLeftSideStalling() {
+        return leftDebouncer.calculate(Math.abs(leftEncoder.getVelocity()) < ClimberConstants.VELOCITY_THRESHHOLD);
     }
-
-    public boolean isRightSideStalling(){
-        return rightDebouncer.calculate(Math.abs(getRightEncoderPosition()) < ClimberConstants.VELOCITY_THRESHHOLD);
+    
+    // if the right side is stalling, tell climber to stop 
+    public boolean isRightSideStalling() {
+        return rightDebouncer.calculate(Math.abs(rightEncoder.getVelocity()) < ClimberConstants.VELOCITY_THRESHHOLD);
     }
-
 
 }

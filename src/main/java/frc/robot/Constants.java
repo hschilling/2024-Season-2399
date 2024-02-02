@@ -29,6 +29,7 @@ public final class Constants {
   public static final int NEO_CURRENT_LIMIT = 50;
 
   public static final class DriveConstants {
+
     // Driving Parameters - Note that these are not the maximum capable speeds of
     // the robot, rather the allowed maximum speeds
     public static final double kMaxSpeedMetersPerSecond = 4.8;
@@ -162,6 +163,7 @@ public final class Constants {
   }
 
   public static final class ClimberConstants {
+
     public static final int LEFT_CLIMBER_MOTOR_ID = 12;
     public static final int RIGHT_CLIMBER_MOTOR_ID = 11;
     public static final double CLIMBER_SPEED = 0.5;
@@ -174,7 +176,7 @@ public final class Constants {
     public static final int EXTEND_PISTON = 4;
     public static final int RETRACT_PISTON = 5;
 
-    public static final double VELOCITY_THRESHHOLD = 100; 
+    public static final double VELOCITY_THRESHHOLD = 100;
 
   }
 
