@@ -18,12 +18,16 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Axis;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.ClimberConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -31,6 +35,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.List;
 import frc.robot.subsystems.*;
 import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.climber.ClimberIO;
+import frc.robot.subsystems.climber.ClimberReal;
 import frc.robot.subsystems.shooter.RealShooter;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIO;
@@ -132,6 +138,19 @@ public class RobotContainer {
 
                 );
 
+                m_operatorController.b().and(()->isInClimberMode).onTrue(new ParallelCommandGroup(
+                        new InstantCommand(()-> climber.setLeftMotor(ClimberConstants.MAX_HEIGHT - 0.1)),
+                        new InstantCommand(()-> climber.setRightMotor(ClimberConstants.MAX_HEIGHT - 0.1))
+                        )
+
+                );
+                m_operatorController.a().and(()->isInClimberMode).onTrue(new ParallelCommandGroup(
+                        new InstantCommand(()-> climber.setLeftMotor(ClimberConstants.MIN_HEIGHT + 0.1)),
+                        new InstantCommand(()-> climber.setRightMotor(ClimberConstants.MIN_HEIGHT + 0.1))
+                        )
+
+                );
+
                 // new JoystickButton(m_driverController, XboxController.Button.kY.value)
                 // .whileTrue(new RunCommand(
                 // () -> m_robotDrive.setZero(),
@@ -160,8 +179,8 @@ public class RobotContainer {
         }
 
         private void setUpClimber() {
-
-                climber = new Climber();
+                ClimberIO climberIO = new ClimberReal(); 
+                climber = new Climber(climberIO);
         }
         /**
          * Use this to pass the autonomous command to the main {@link Robot} class.
