@@ -119,33 +119,32 @@ public class RobotContainer {
                 // m_robotDrive));
 
                 m_operatorController.leftTrigger().and(()->isInClimberMode).whileTrue(new RunCommand(
-                                () -> climber.setLeftSpeed(0.2))
+                                () -> climber.setLeftSpeed(0.2),climber)
 
                 );
                 m_operatorController.rightTrigger().and(()->isInClimberMode).whileTrue(new RunCommand(
-                                () -> climber.setRightSpeed(0.2))
+                                () -> climber.setRightSpeed(0.2),climber)
 
                 );
                 m_operatorController.leftBumper().and(()->isInClimberMode).whileTrue(new RunCommand(
-                                () -> climber.setLeftSpeed(-0.2))
+                                () -> climber.setLeftSpeed(-0.2),climber)
 
                 );
                 m_operatorController.rightBumper().and(()->isInClimberMode).whileTrue(new RunCommand(
-                                () -> climber.setRightSpeed(-0.2))
+                                () -> climber.setRightSpeed(-0.2),climber)
 
                 );
-                m_operatorController.x().onTrue(new InstantCommand(()->isInClimberMode = !isInClimberMode)
-
+                m_operatorController.x().onTrue(new InstantCommand(()->isInClimberMode = !isInClimberMode,climber)
                 );
 
                 m_operatorController.b().and(()->isInClimberMode).onTrue(new ParallelCommandGroup(
-                        new InstantCommand(()-> climber.setLeftMotor(ClimberConstants.MAX_HEIGHT - 0.1)),
+                        new InstantCommand(()-> climber.setLeftMotor(ClimberConstants.MAX_HEIGHT - 0.1),climber),
                         new InstantCommand(()-> climber.setRightMotor(ClimberConstants.MAX_HEIGHT - 0.1))
                         )
 
                 );
                 m_operatorController.a().and(()->isInClimberMode).onTrue(new ParallelCommandGroup(
-                        new InstantCommand(()-> climber.setLeftMotor(ClimberConstants.MIN_HEIGHT + 0.1)),
+                        new InstantCommand(()-> climber.setLeftMotor(ClimberConstants.MIN_HEIGHT + 0.1),climber),
                         new InstantCommand(()-> climber.setRightMotor(ClimberConstants.MIN_HEIGHT + 0.1))
                         )
 
@@ -169,14 +168,14 @@ public class RobotContainer {
                                                 () -> shooter.setMotor(0)));
         }
 
-        private void setUpShooter() {
+        // private void setUpShooter() {
 
-                ShooterIO shooterIO;
+        //         ShooterIO shooterIO;
 
-                shooterIO = new RealShooter();
+        //         shooterIO = new RealShooter();
 
-                shooter = new Shooter(shooterIO);
-        }
+        //         shooter = new Shooter(shooterIO);
+        // }
 
         private void setUpClimber() {
                 ClimberIO climberIO = new ClimberReal(); 

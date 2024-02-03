@@ -51,11 +51,13 @@ public class ClimberReal implements ClimberIO {
 
     public ClimberReal() {
 
-        // initialize motor controllers
-        leftMotorController = MotorUtil.createSparkMAX(ClimberConstants.LEFT_CLIMBER_MOTOR_ID, MotorType.kBrushless, 0,
+        //initialize motor controllers
+        leftMotorController = MotorUtil.createSparkMAX(ClimberConstants.LEFT_CLIMBER_MOTOR_ID, MotorType.kBrushless, 0, true,
                 true, 0.1);
         rightMotorController = MotorUtil.createSparkMAX(ClimberConstants.RIGHT_CLIMBER_MOTOR_ID, MotorType.kBrushless,
-                0, true, 0.1);
+                0, false, true, 0.1);
+
+
 
         // initialize motor encoder
         leftEncoder = leftMotorController.getEncoder();
