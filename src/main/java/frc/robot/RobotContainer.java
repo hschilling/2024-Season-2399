@@ -104,7 +104,7 @@ public class RobotContainer {
     //default command for the shooter: setting speed to number input from the smart dashboard
     m_shooter.setDefaultCommand(
         new RunCommand(
-            () -> m_shooter.setSpeed(SmartDashboard.getNumber("shoot speed", 0)),
+            () -> m_shooter.setSpeed(0),
             m_shooter));
 
     //default command for intake: do nothing
@@ -153,9 +153,9 @@ public class RobotContainer {
         .onTrue(new InstantCommand(
             () -> m_gyro.resetYaw(), m_gyro));  
     
-    // new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
-    //     .whileTrue(new RunCommand(
-    //     () -> m_shooter.setMotor(1)));
+    new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
+        .whileTrue(new RunCommand(
+        () -> m_shooter.setMotor(0.1)));
     
     // Left trigger to intake
     new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1)
@@ -166,6 +166,8 @@ public class RobotContainer {
     new Trigger(() -> m_driverController.getRawAxis(Axis.kRightTrigger.value) > 0.1)
         .whileTrue(new RunCommand(
         () -> m_intake.setMotor(-0.3)));
+    
+   
     
     // //Right stick up to move arm up
     // new Trigger(() -> m_driverController.getRawAxis(Axis.kRightY.value) < -0.1)
