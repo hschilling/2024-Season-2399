@@ -133,6 +133,7 @@ public final class Constants {
   public static final class OIConstants {
     public static final int kDriverControllerPort = 0;
     public static final double kDriveDeadband = 0.1;
+    public static final int kOperatorControllerPort = 1;
   }
 
   public static final class AutoConstants {
@@ -159,5 +160,9 @@ public final class Constants {
     public static final Transform3d camToRobot = new Transform3d(
         new Translation3d(Units.inchesToMeters(12.5), Units.inchesToMeters(0.0), Units.inchesToMeters(20.75)),
         new Rotation3d(0.0, 0.0, 0.0));
+    //these need to be changed when we have a robot and are here as placeholders
+    public static final double xOffsetToRobot = 0;
+    public static final double yOffsetToRobot = 0;
+    public static final double zOffsetToRobot = 0;
   }
 }

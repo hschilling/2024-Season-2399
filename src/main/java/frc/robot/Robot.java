@@ -25,12 +25,12 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   //initializes camera
-  PhotonCamera camera = new PhotonCamera("Arducam_OV2311_USB_Camera");
+  //PhotonCamera camera = new PhotonCamera("Arducam_OV2311_USB_Camera");
   DescriptiveStatistics xPosStats = new DescriptiveStatistics(1500);
   DescriptiveStatistics yPosStats = new DescriptiveStatistics(1500);
   DescriptiveStatistics zPosStats = new DescriptiveStatistics(1500);
   DescriptiveStatistics thetaStats = new DescriptiveStatistics(1500);
-  //private RobotContainer m_robotContainer;
+  private RobotContainer m_robotContainer;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -40,7 +40,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
-    //m_robotContainer = new RobotContainer();
+    m_robotContainer = new RobotContainer();
   }
 
   /**
@@ -57,31 +57,31 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
-    var result = camera.getLatestResult();
-    PhotonTrackedTarget target = result.getBestTarget();
+    //var result = camera.getLatestResult();
+    //PhotonTrackedTarget target = result.getBestTarget();
     
-    if (result.hasTargets()){
+    //if (result.hasTargets()){
       // double yaw = result.getBestTarget().getYaw();
       // double pitch = result.getBestTarget().getPitch();
-      Transform3d bestCameraToTarget = target.getBestCameraToTarget();
+      //Transform3d bestCameraToTarget = target.getBestCameraToTarget();
       // SmartDashboard.putNumber("Yaw ", yaw);
       // SmartDashboard.putNumber("Pitch ", pitch);
-      SmartDashboard.putNumber("X Pos: ", bestCameraToTarget.getX());
+      //SmartDashboard.putNumber("X Pos: ", bestCameraToTarget.getX());
       // SmartDashboard.putNumber("Y Pos: ", bestCameraToTarget.getY());
       // SmartDashboard.putNumber("Z Pos: ", bestCameraToTarget.getZ());
-      xPosStats.addValue(bestCameraToTarget.getX());
-      SmartDashboard.putNumber("X StDev: ", xPosStats.getStandardDeviation());
-      SmartDashboard.putNumber("X Mean: ", xPosStats.getMean());
-      yPosStats.addValue(bestCameraToTarget.getY());
-      SmartDashboard.putNumber("Y St Dev: ", yPosStats.getStandardDeviation());
-      SmartDashboard.putNumber("Y Mean: ", yPosStats.getMean());
-      zPosStats.addValue(bestCameraToTarget.getZ());
-      SmartDashboard.putNumber("Z Mean: ", zPosStats.getMean());
-      double currentTheta = Math.atan(bestCameraToTarget.getZ()/bestCameraToTarget.getX());
-      thetaStats.addValue(currentTheta);
-      SmartDashboard.putNumber("theta Mean: ", thetaStats.getMean());
-      SmartDashboard.putNumber("theta St Dev: ", thetaStats.getStandardDeviation());
-    }
+      // xPosStats.addValue(bestCameraToTarget.getX());
+      // SmartDashboard.putNumber("X StDev: ", xPosStats.getStandardDeviation());
+      // SmartDashboard.putNumber("X Mean: ", xPosStats.getMean());
+      // yPosStats.addValue(bestCameraToTarget.getY());
+      // SmartDashboard.putNumber("Y St Dev: ", yPosStats.getStandardDeviation());
+      // SmartDashboard.putNumber("Y Mean: ", yPosStats.getMean());
+      // zPosStats.addValue(bestCameraToTarget.getZ());
+      // SmartDashboard.putNumber("Z Mean: ", zPosStats.getMean());
+      // double currentTheta = Math.atan(bestCameraToTarget.getZ()/bestCameraToTarget.getX());
+      // thetaStats.addValue(currentTheta);
+      // SmartDashboard.putNumber("theta Mean: ", thetaStats.getMean());
+      // SmartDashboard.putNumber("theta St Dev: ", thetaStats.getStandardDeviation());
+    //}
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
