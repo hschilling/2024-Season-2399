@@ -18,12 +18,16 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Axis;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.ClimberConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -31,6 +35,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.List;
 import frc.robot.subsystems.*;
 import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.climber.ClimberIO;
+import frc.robot.subsystems.climber.ClimberReal;
 import frc.robot.subsystems.shooter.RealShooter;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIO;
@@ -113,22 +119,34 @@ public class RobotContainer {
                 // m_robotDrive));
 
                 m_operatorController.leftTrigger().and(()->isInClimberMode).whileTrue(new RunCommand(
-                                () -> climber.setLeftSpeed(0.2))
+                                () -> climber.setLeftSpeed(0.2),climber)
 
                 );
                 m_operatorController.rightTrigger().and(()->isInClimberMode).whileTrue(new RunCommand(
-                                () -> climber.setRightSpeed(0.2))
+                                () -> climber.setRightSpeed(0.2),climber)
 
                 );
                 m_operatorController.leftBumper().and(()->isInClimberMode).whileTrue(new RunCommand(
-                                () -> climber.setLeftSpeed(-0.2))
+                                () -> climber.setLeftSpeed(-0.2),climber)
 
                 );
                 m_operatorController.rightBumper().and(()->isInClimberMode).whileTrue(new RunCommand(
-                                () -> climber.setRightSpeed(-0.2))
+                                () -> climber.setRightSpeed(-0.2),climber)
 
                 );
-                m_operatorController.x().onTrue(new InstantCommand(()->isInClimberMode = !isInClimberMode)
+                m_operatorController.x().onTrue(new InstantCommand(()->isInClimberMode = !isInClimberMode,climber)
+                );
+
+                m_operatorController.b().and(()->isInClimberMode).onTrue(new ParallelCommandGroup(
+                        new InstantCommand(()-> climber.setLeftMotor(ClimberConstants.MAX_HEIGHT - 0.1),climber),
+                        new InstantCommand(()-> climber.setRightMotor(ClimberConstants.MAX_HEIGHT - 0.1))
+                        )
+
+                );
+                m_operatorController.a().and(()->isInClimberMode).onTrue(new ParallelCommandGroup(
+                        new InstantCommand(()-> climber.setLeftMotor(ClimberConstants.MIN_HEIGHT + 0.1),climber),
+                        new InstantCommand(()-> climber.setRightMotor(ClimberConstants.MIN_HEIGHT + 0.1))
+                        )
 
                 );
 
@@ -150,18 +168,18 @@ public class RobotContainer {
                                                 () -> shooter.setMotor(0)));
         }
 
-        private void setUpShooter() {
+        // private void setUpShooter() {
 
-                ShooterIO shooterIO;
+        //         ShooterIO shooterIO;
 
-                shooterIO = new RealShooter();
+        //         shooterIO = new RealShooter();
 
-                shooter = new Shooter(shooterIO);
-        }
+        //         shooter = new Shooter(shooterIO);
+        // }
 
         private void setUpClimber() {
-
-                climber = new Climber();
+                ClimberIO climberIO = new ClimberReal(); 
+                climber = new Climber(climberIO);
         }
         /**
          * Use this to pass the autonomous command to the main {@link Robot} class.
