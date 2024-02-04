@@ -148,7 +148,7 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     //apply correction if there is no rotation input and there is either x or y input
-    else if(rotRate == 0 && (xSpeed != 0 || ySpeed != 0)) {
+    if(rotRate == 0 && (xSpeed != 0 || ySpeed != 0)) {
       newRotRate = 0;
       //correction algorithm
       if(Math.abs(desiredAngle - currentAngle) > Math.toRadians(1)) {
