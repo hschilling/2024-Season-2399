@@ -38,7 +38,7 @@ public class Climber extends SubsystemBase {
 
     // private double climberSetpoint;
 
-    public static final double CLIMBER_KP = 0;// 1.875;
+    public static final double CLIMBER_KP = 0.0;// 1.875;
     public static final double CLIMBER_KI = 0;// 0.006;
     public static final double CLIMBER_KD = 0;// 52.5;
     public static final double CLIMBER_KF = 0.000086; // 0.15;
