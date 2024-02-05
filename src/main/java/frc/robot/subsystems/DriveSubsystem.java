@@ -137,7 +137,7 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void drive(double xSpeed, double ySpeed, double rotRate, boolean fieldRelative, boolean rateLimit) {
     
-    double newRotRate = 0;
+    double newRotRate;
     double xSpeedCommanded;
     double ySpeedCommanded;
     double currentAngle = Math.toRadians(Gyro.yaw);
