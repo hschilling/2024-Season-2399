@@ -161,6 +161,9 @@ public class DriveSubsystem extends SubsystemBase {
       desiredAngle = currentAngle;
     }
 
+    SmartDashboard.putNumber("angle difference", desiredAngle - currentAngle);
+    SmartDashboard.putNumber("rotation input", newRotRate);
+
     if (rateLimit) {
       // Convert XY to polar for rate limiting
       double inputTranslationDir = Math.atan2(ySpeed, xSpeed);
