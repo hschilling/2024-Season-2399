@@ -66,7 +66,6 @@ public class RealArm implements ArmIO {
     @Override
     public void setSpeed(double speed) {
         armMotorControllerRight.set(speed);
-        armMotorControllerLeft.set(speed);
     }
 
     @Override
