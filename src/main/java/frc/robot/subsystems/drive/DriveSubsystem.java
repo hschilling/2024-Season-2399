@@ -4,17 +4,23 @@
 
 package frc.robot.subsystems.drive;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
@@ -29,11 +35,23 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Robot;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
+
+import org.photonvision.simulation.VisionSystemSim;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+
+import org.photonvision.PhotonCamera;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
+import org.photonvision.simulation.VisionSystemSim;
+import org.photonvision.simulation.VisionTargetSim;
 
 import frc.robot.subsystems.gyro.GyroIO;
 import frc.utils.SwerveUtils;
@@ -73,11 +91,34 @@ public class DriveSubsystem extends SubsystemBase {
   private FieldObject2d frontRightField2dModule = field2d.getObject("front right module");
   private FieldObject2d rearRightField2dModule = field2d.getObject("rear right module");
 
-  private ChassisSpeeds relativeRobotSpeeds; 
+  private ChassisSpeeds relativeRobotSpeeds;
 
   public Rotation2d lastAngle = new Rotation2d();
 
-  StructArrayPublisher<SwerveModuleState> swerveModuleStatePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("/SmartDashboard/Swerve/Current Modules States", SwerveModuleState.struct).publish(); 
+  StructArrayPublisher<SwerveModuleState> swerveModuleStatePublisher = NetworkTableInstance.getDefault()
+      .getStructArrayTopic("/SmartDashboard/Swerve/Current Modules States", SwerveModuleState.struct).publish();
+
+  // A vision system sim labelled as "main" in NetworkTables
+  PhotonCamera camera = new PhotonCamera("photonvision");
+
+  VisionSystemSim visionSim = new VisionSystemSim("front");
+  public static AprilTagFieldLayout aprilTagFieldLayout;
+  // Simulated Vision System.
+  // Configure these to match your PhotonVision Camera,
+  // pipeline, and LED setup.
+  final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(24);
+  final double TARGET_HEIGHT_METERS = Units.feetToMeters(5);
+  // Angle between horizontal and the camera.
+  final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(0);
+
+  double camDiagFOV = 100.0; // degrees
+  double camPitch = CAMERA_PITCH_RADIANS; // degrees
+  double camHeightOffGround = CAMERA_HEIGHT_METERS; // meters
+  double minTargetArea = 0.1; // percentage (0 - 100)
+  double maxLEDRange = 20; // meters
+  int camResolutionWidth = 640; // pixels
+  int camResolutionHeight = 480; // pixels
+  PhotonCameraSim cameraSim;
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem(SwerveModule m_frontLeft, SwerveModule m_frontRight, SwerveModule m_rearLeft,
@@ -91,9 +132,8 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putData(field2d);
 
     poseEstimator = new SwerveDrivePoseEstimator(
-        Constants.DriveConstants.kDriveKinematics, new Rotation2d(m_gyro.getYaw()), getModulePositions(), 
+        Constants.DriveConstants.kDriveKinematics, new Rotation2d(m_gyro.getYaw()), getModulePositions(),
         new Pose2d());
-
 
     AutoBuilder.configureHolonomic(
         this::getPose,
@@ -120,6 +160,42 @@ public class DriveSubsystem extends SubsystemBase {
         },
 
         this);
+
+    try {
+      aprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    visionSim.addAprilTags(aprilTagFieldLayout);
+
+    // Get the built-in Field2d used by this VisionSystemSim
+    visionSim.getDebugField();
+
+    var cameraProp = new SimCameraProperties();
+    cameraProp.setCalibration(
+        camResolutionWidth, camResolutionHeight, Rotation2d.fromDegrees(camDiagFOV));
+    cameraProp.setCalibError(0.2, 0.05);
+    cameraProp.setFPS(25);
+    cameraProp.setAvgLatencyMs(30);
+    cameraProp.setLatencyStdDevMs(4);
+    // Create a PhotonCameraSim which will update the linked PhotonCamera's values
+    // with visible
+    // targets.
+    cameraSim = new PhotonCameraSim(camera, cameraProp, minTargetArea, maxLEDRange);
+    // Our camera is mounted 0.1 meters forward and 0.5 meters up from the robot
+    // pose,
+    // (Robot pose is considered the center of rotation at the floor level, or Z =
+    // 0)
+    Translation3d robotToCameraTrl = new Translation3d(0.1, 0, 0.5);
+    // and pitched 15 degrees up.
+    Rotation3d robotToCameraRot = new Rotation3d(0, Math.toRadians(-15), 0);
+    Transform3d robotToCamera = new Transform3d(robotToCameraTrl, robotToCameraRot);
+
+    // Add this camera to the vision system simulation with the given
+    // robot-to-camera transform.
+    visionSim.addCamera(cameraSim, robotToCamera);
+
   }
 
   @Override
@@ -138,7 +214,6 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("periodic front right position", m_frontRight.getPosition().distanceMeters);
     SmartDashboard.putNumber("periodic rear left position", m_rearLeft.getPosition().distanceMeters);
     SmartDashboard.putNumber("periodic rear right position", m_rearRight.getPosition().distanceMeters);
-
 
     SmartDashboard.putNumber("periodic front left angle", m_frontLeft.getPosition().angle.getDegrees());
     // Gyro log (spain without the a followed by spain without the s)
@@ -182,21 +257,26 @@ public class DriveSubsystem extends SubsystemBase {
         Constants.DriveConstants.REAR_RIGHT_OFFSET,
         new Rotation2d(m_rearRight.getTurnEncoderPosition()))));
 
-    
-    SwerveModuleState[] swerveModuleStates = new SwerveModuleState[]{
-      m_frontLeft.getState(),
-      m_frontRight.getState(),
-      m_rearLeft.getState(),
-      m_rearRight.getState(),
+    SwerveModuleState[] swerveModuleStates = new SwerveModuleState[] {
+        m_frontLeft.getState(),
+        m_frontRight.getState(),
+        m_rearLeft.getState(),
+        m_rearRight.getState(),
     };
     swerveModuleStatePublisher.set(swerveModuleStates);
 
-    if (DriverStation.isAutonomous()){
+    if (DriverStation.isAutonomous()) {
       System.out.println("Mahee is annoying");
-    } 
-    double angleChange = Constants.DriveConstants.kDriveKinematics.toChassisSpeeds(swerveModuleStates).omegaRadiansPerSecond * (1/Constants.CodeConstants.kMainLoopFrequency);
+    }
+
+    if ( Robot.isSimulation()){
+    double angleChange = Constants.DriveConstants.kDriveKinematics
+        .toChassisSpeeds(swerveModuleStates).omegaRadiansPerSecond * (1 / Constants.CodeConstants.kMainLoopFrequency);
     lastAngle = lastAngle.plus(Rotation2d.fromRadians(angleChange));
     m_gyro.setYaw(lastAngle.getRadians());
+    visionSim.update(getPose());
+
+    }
   }
   // Log empty setpoint states when disabled
 
@@ -329,13 +409,11 @@ public class DriveSubsystem extends SubsystemBase {
     double ySpeedDelivered = ySpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
     double rotRateDelivered = m_currentRotationRate * DriveConstants.kMaxAngularSpeed;
 
-
     relativeRobotSpeeds = fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotRateDelivered,
-                Rotation2d.fromRadians(m_gyro.getYaw()))
-            : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotRateDelivered);
+        ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotRateDelivered,
+            Rotation2d.fromRadians(m_gyro.getYaw()))
+        : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotRateDelivered);
 
-    
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(relativeRobotSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -425,7 +503,6 @@ public class DriveSubsystem extends SubsystemBase {
     return DriveConstants.kDriveKinematics.toChassisSpeeds(m_frontLeft.getState(), m_frontRight.getState(),
         m_rearLeft.getState(), m_rearRight.getState());
   }
-
 
   public void setRobotRelativeSpeeds(ChassisSpeeds speeds) {
     this.drive(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond, false, false);
