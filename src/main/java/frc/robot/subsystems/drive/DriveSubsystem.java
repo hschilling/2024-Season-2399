@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -21,6 +22,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
@@ -48,10 +51,15 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonUtils;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.simulation.VisionTargetSim;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 import frc.robot.subsystems.gyro.GyroIO;
 import frc.utils.SwerveUtils;
@@ -120,6 +128,10 @@ public class DriveSubsystem extends SubsystemBase {
   int camResolutionHeight = 480; // pixels
   PhotonCameraSim cameraSim;
 
+  private static PhotonPoseEstimator camPoseEstimator;
+
+  PhotonPipelineResult lastestResult;
+
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem(SwerveModule m_frontLeft, SwerveModule m_frontRight, SwerveModule m_rearLeft,
       SwerveModule m_rearRight, GyroIO m_gyro) {
@@ -183,6 +195,7 @@ public class DriveSubsystem extends SubsystemBase {
     // with visible
     // targets.
     cameraSim = new PhotonCameraSim(camera, cameraProp, minTargetArea, maxLEDRange);
+
     // Our camera is mounted 0.1 meters forward and 0.5 meters up from the robot
     // pose,
     // (Robot pose is considered the center of rotation at the floor level, or Z =
@@ -192,9 +205,19 @@ public class DriveSubsystem extends SubsystemBase {
     Rotation3d robotToCameraRot = new Rotation3d(0, Math.toRadians(-15), 0);
     Transform3d robotToCamera = new Transform3d(robotToCameraTrl, robotToCameraRot);
 
+    camPoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+        camera, robotToCamera);
+
     // Add this camera to the vision system simulation with the given
     // robot-to-camera transform.
     visionSim.addCamera(cameraSim, robotToCamera);
+
+    // PhotonPipelineResult lastestResult = camera.getLatestResult();
+    // for (PhotonTrackedTarget result : lastestResult.getTargets()) {
+    // System.out.println("got target");
+
+    // SmartDashboard.putNumber("Vision/yaw", result.getYaw());
+    // }
 
   }
 
@@ -265,18 +288,52 @@ public class DriveSubsystem extends SubsystemBase {
     };
     swerveModuleStatePublisher.set(swerveModuleStates);
 
-    if (DriverStation.isAutonomous()) {
-      System.out.println("Mahee is annoying");
-    }
+    // if (DriverStation.isAutonomous()) {
+    // System.out.println("Mahee is annoying");
+    // }
 
-    if ( Robot.isSimulation()){
-    double angleChange = Constants.DriveConstants.kDriveKinematics
-        .toChassisSpeeds(swerveModuleStates).omegaRadiansPerSecond * (1 / Constants.CodeConstants.kMainLoopFrequency);
-    lastAngle = lastAngle.plus(Rotation2d.fromRadians(angleChange));
-    m_gyro.setYaw(lastAngle.getRadians());
-    visionSim.update(getPose());
+    if (Robot.isSimulation()) {
+      double angleChange = Constants.DriveConstants.kDriveKinematics
+          .toChassisSpeeds(swerveModuleStates).omegaRadiansPerSecond * (1 / Constants.CodeConstants.kMainLoopFrequency);
+      lastAngle = lastAngle.plus(Rotation2d.fromRadians(angleChange));
+      m_gyro.setYaw(lastAngle.getRadians());
+      visionSim.update(getPose());
 
+      NetworkTableInstance ntInstance = NetworkTableInstance.getDefault();
+
+      // Get the NetworkTable for PhotonVision
+      NetworkTable photonVisionTable = ntInstance.getTable("photonvision").getSubTable("photonvision");
+
+      // Get the targetYaw entry
+      NetworkTableEntry targetYawEntry = photonVisionTable.getEntry("targetYaw");
+
+      // Read the value from the NetworkTable. Using getDouble here, assuming the
+      // value is a double.
+      // The second parameter is a default value that will be returned if the key does
+      // not exist
+      double targetYaw = targetYawEntry.getDouble(23.99);
+
+      // System.out.println("Target Yaw: " + targetYaw);
+
+      lastestResult = camera.getLatestResult();
+      for (PhotonTrackedTarget result : lastestResult.getTargets()) {
+        // System.out.println("got target");
+
+        SmartDashboard.putNumber("Vision/yaw", result.getYaw());
+      }
+
+      var visionEst = camPoseEstimator.update();
+
+      if (visionEst.isPresent()) {
+        SmartDashboard.putNumber("Vison/pose X", visionEst.get().estimatedPose.getX());
+        SmartDashboard.putNumber("Vison/pose Y", visionEst.get().estimatedPose.getY());
+
+      }
     }
+  }
+
+  public PhotonPipelineResult getLatestResult(){
+    return lastestResult;
   }
   // Log empty setpoint states when disabled
 
