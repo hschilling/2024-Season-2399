@@ -206,9 +206,9 @@ public class DriveSubsystem extends SubsystemBase {
     double newRotRate = 0;
     double xSpeedCommanded;
     double ySpeedCommanded;
-    double currentAngle = getPose().getRotation().getRadians();
+    double currentAngle = m_gyro.getYaw();
 
-    //Account for edge case when gyro resets
+    // //Account for edge case when gyro resets
     if (currentAngle == 0) {
       desiredAngle = 0;
     }
@@ -219,10 +219,6 @@ public class DriveSubsystem extends SubsystemBase {
       // correction algorithm
       if (Math.abs(desiredAngle - currentAngle) > Math.toRadians(1)) {
         newRotRate = (2.0 * (desiredAngle - currentAngle)) % (2 * Math.PI) / (2 * Math.PI);
-      }
-      else{
-        newRotRate = rotRate;
-        desiredAngle = currentAngle;
       }
     }
     else {
