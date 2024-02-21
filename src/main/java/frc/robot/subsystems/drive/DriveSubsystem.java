@@ -17,6 +17,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -47,7 +48,7 @@ public class DriveSubsystem extends SubsystemBase {
   private double m_currentRotationRate = 0.0;
 
   private double desiredAngle = 0;
-  
+
   private GyroIO m_gyro;
 
   private final Field2d field2d = new Field2d();
@@ -56,11 +57,12 @@ public class DriveSubsystem extends SubsystemBase {
   private FieldObject2d frontRightField2dModule = field2d.getObject("front right module");
   private FieldObject2d rearRightField2dModule = field2d.getObject("rear right module");
 
-  private ChassisSpeeds relativeRobotSpeeds; 
+  private ChassisSpeeds relativeRobotSpeeds;
 
   public Rotation2d lastAngle = new Rotation2d();
 
-  StructArrayPublisher<SwerveModuleState> swerveModuleStatePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("/SmartDashboard/Swerve/Current Modules States", SwerveModuleState.struct).publish(); 
+  StructArrayPublisher<SwerveModuleState> swerveModuleStatePublisher = NetworkTableInstance.getDefault()
+      .getStructArrayTopic("/SmartDashboard/Swerve/Current Modules States", SwerveModuleState.struct).publish();
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem(SwerveModule m_frontLeft, SwerveModule m_frontRight, SwerveModule m_rearLeft,
@@ -74,9 +76,8 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putData(field2d);
 
     poseEstimator = new SwerveDrivePoseEstimator(
-        Constants.DriveConstants.kDriveKinematics, new Rotation2d(m_gyro.getYaw()), getModulePositions(), 
+        Constants.DriveConstants.kDriveKinematics, new Rotation2d(m_gyro.getYaw()), getModulePositions(),
         new Pose2d());
-
 
     AutoBuilder.configureHolonomic(
         this::getPose,
@@ -91,7 +92,8 @@ public class DriveSubsystem extends SubsystemBase {
             new ReplanningConfig()),
 
         () -> {
-          // Basically flips the path for path planner depending on alliance(Origin is Blue Alliance)
+          // Basically flips the path for path planner depending on alliance(Origin is
+          // Blue Alliance)
 
           var alliance = DriverStation.getAlliance();
 
@@ -117,7 +119,6 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearRight.getPosition()
         });
 
-
     // updates inputs for each module
     m_frontLeft.updateInputs();
     m_rearLeft.updateInputs();
@@ -142,20 +143,20 @@ public class DriveSubsystem extends SubsystemBase {
         Constants.DriveConstants.REAR_RIGHT_OFFSET,
         new Rotation2d(m_rearRight.getTurnEncoderPosition()))));
 
-    
-    SwerveModuleState[] swerveModuleStates = new SwerveModuleState[]{
-      m_frontLeft.getState(),
-      m_frontRight.getState(),
-      m_rearLeft.getState(),
-      m_rearRight.getState(),
+    SwerveModuleState[] swerveModuleStates = new SwerveModuleState[] {
+        m_frontLeft.getState(),
+        m_frontRight.getState(),
+        m_rearLeft.getState(),
+        m_rearRight.getState(),
     };
     swerveModuleStatePublisher.set(swerveModuleStates);
 
-
     if (Robot.isSimulation()) {
-      double angleChange = Constants.DriveConstants.kDriveKinematics.toChassisSpeeds(swerveModuleStates).omegaRadiansPerSecond * (1/Constants.CodeConstants.kMainLoopFrequency);
+      double angleChange = Constants.DriveConstants.kDriveKinematics
+          .toChassisSpeeds(swerveModuleStates).omegaRadiansPerSecond * (1 / Constants.CodeConstants.kMainLoopFrequency);
       lastAngle = lastAngle.plus(Rotation2d.fromRadians(angleChange));
-      m_gyro.setYaw(lastAngle.getRadians());}
+      m_gyro.setYaw(lastAngle.getRadians());
+    }
   }
 
   /** Returns the currently-estimated pose of the robot. */
@@ -205,28 +206,46 @@ public class DriveSubsystem extends SubsystemBase {
     double newRotRate = 0;
     double xSpeedCommanded;
     double ySpeedCommanded;
-    double currentAngle = (m_gyro.getYaw());
+    double currentAngle = getPose().getRotation().getRadians();
 
+    //Account for edge case when gyro resets
+    if (currentAngle == 0) {
+      desiredAngle = 0;
+    }
+
+    //Apply correction if needed
+    if (rotRate == 0 && (xSpeed != 0 || ySpeed != 0)) {
+      newRotRate = 0;
+      // correction algorithm
+      if (Math.abs(desiredAngle - currentAngle) > Math.toRadians(1)) {
+        newRotRate = (2.0 * (desiredAngle - currentAngle)) % (2 * Math.PI) / (2 * Math.PI);
+      }
+      else{
+        newRotRate = rotRate;
+        desiredAngle = currentAngle;
+      }
+    }
+    else {
       newRotRate = rotRate;
       desiredAngle = currentAngle;
-  
-      xSpeedCommanded = xSpeed;
-      ySpeedCommanded = ySpeed;
-      m_currentRotationRate = newRotRate;
-  
+    }
+    SmartDashboard.putNumber("rotation rate", newRotRate);
+    SmartDashboard.putNumber("gyro yaw", Units.radiansToDegrees(m_gyro.getYaw()));
+
+    xSpeedCommanded = xSpeed;
+    ySpeedCommanded = ySpeed;
+    m_currentRotationRate = newRotRate;
 
     // Convert the commanded speeds into the correct units for the drivetrain
     double xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
     double ySpeedDelivered = ySpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
     double rotRateDelivered = m_currentRotationRate * DriveConstants.kMaxAngularSpeed;
-    
 
     relativeRobotSpeeds = fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotRateDelivered,
-                Rotation2d.fromRadians(m_gyro.getYaw()))
-            : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotRateDelivered);
+        ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotRateDelivered,
+            Rotation2d.fromRadians(m_gyro.getYaw()))
+        : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotRateDelivered);
 
-    
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(relativeRobotSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -302,12 +321,12 @@ public class DriveSubsystem extends SubsystemBase {
         m_rearLeft.getState(), m_rearRight.getState());
   }
 
-
   public void setRobotRelativeSpeeds(ChassisSpeeds speeds) {
     this.drive(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond, false);
   }
 
-  //makes sure odometry's (0,0) is the same as global (0,0) (according to PhotonVision)
+  // makes sure odometry's (0,0) is the same as global (0,0) (according to
+  // PhotonVision)
   public void alignOrigins(Pose2d pose) {
     poseEstimator.resetPosition(
         Rotation2d.fromDegrees(m_gyro.getYaw()),
