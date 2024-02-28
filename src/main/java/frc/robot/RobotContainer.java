@@ -257,29 +257,29 @@ public class RobotContainer {
 
   // Configure default commands
   private void configureDefaultCommands() {
-    // default command for the shooter: do nothing
-    m_shooter.setDefaultCommand(
-        new RunCommand(
-            () -> m_shooter.setMotor(0),
-            m_shooter)) ;
+    // // default command for the shooter: do nothing
+    // m_shooter.setDefaultCommand(
+    //     new RunCommand(
+    //         () -> m_shooter.setMotor(0),
+    //         m_shooter)) ;
 
-    // default command for intake: do nothing
-    m_intake.setDefaultCommand(
-        new RunCommand(
-            () -> m_intake.setMotor(0),
-            m_intake));
+    // // default command for intake: do nothing
+    // m_intake.setDefaultCommand(
+    //     new RunCommand(
+    //         () -> m_intake.setMotor(0),
+    //         m_intake));
 
-    // default command for indexer: do nothing
-    m_indexer.setDefaultCommand(
-        new RunCommand(
-            () -> m_indexer.setMotor(0),
-            m_indexer));
+    // // default command for indexer: do nothing
+    // m_indexer.setDefaultCommand(
+    //     new RunCommand(
+    //         () -> m_indexer.setMotor(0),
+    //         m_indexer));
 
-    // default command for climber: do nothing
-    m_climber.setDefaultCommand(
-        new RunCommand(
-            () -> m_climber.setMotors(0),
-            m_climber));
+    // // default command for climber: do nothing
+    // m_climber.setDefaultCommand(
+    //     new RunCommand(
+    //         () -> m_climber.setMotors(0),
+    //         m_climber));
 
     // Arm default command; do nothing but with gravity compensation so it stays
     // where it is.
@@ -315,7 +315,8 @@ public class RobotContainer {
     // driver left bumper: manual shoot
     //gets arm height to assign to speed. lower arm, means cloesr to speaekr, so shoots less forecfully
     m_driverController.leftBumper().whileTrue(
-        new RunCommand(() -> m_shooter.setMotor(m_arm.getSpeedFromArmHeight()), m_shooter));
+        new RunCommand(() -> m_shooter.setMotor(m_arm.getSpeedFromArmHeight()), m_shooter))
+        .onFalse(new RunCommand(() -> m_shooter.setMotor(0), m_shooter));
     
 
     // driver right bumper: auto-shoot
@@ -327,7 +328,8 @@ public class RobotContainer {
 
     // driver right trigger: manual intake with arm height restriction
     //only intakes if arm is lowered
-    m_driverController.rightTrigger().whileTrue(intakeWithHeightRestriction());
+    m_driverController.rightTrigger().whileTrue(intakeWithHeightRestriction())
+    .onFalse(setIndexerAndIntakeSpeed(m_indexer, m_intake, 0));
 
     // driver left trigger: outtake
     m_driverController.leftTrigger().whileTrue(new ParallelCommandGroup(
@@ -356,25 +358,31 @@ public class RobotContainer {
   private void configureButtonBindingsOperatorClimber() {
     // operater left trigger: climber mode: left climber up
     m_operatorController.leftTrigger().and(() -> isInClimberMode).whileTrue(new RunCommand(
-       () -> m_climber.setLeftSpeed(0.2), m_climber));
+       () -> m_climber.setLeftSpeed(0.2), m_climber)).onFalse(new RunCommand(
+       () -> m_climber.setLeftSpeed(0), m_climber));
 
     // operater right trigger: climber mode: right climber up
     m_operatorController.rightTrigger().and(() -> isInClimberMode).whileTrue(new RunCommand(
-      () -> m_climber.setRightSpeed(0.2), m_climber));
+      () -> m_climber.setRightSpeed(0.2), m_climber)).onFalse(new RunCommand(
+       () -> m_climber.setRightSpeed(0), m_climber));
 
     // operater left bumper: climber mode: left climber down
     m_operatorController.leftBumper().and(() -> isInClimberMode).whileTrue(new RunCommand(
-         () -> m_climber.setLeftSpeed(-0.2), m_climber));
+         () -> m_climber.setLeftSpeed(-0.2), m_climber)).onFalse(new RunCommand(
+       () -> m_climber.setLeftSpeed(0), m_climber));
 
     // operater right bumper: climber mode: right climber down
     m_operatorController.rightBumper().and(() -> isInClimberMode).whileTrue(new RunCommand(
-         () -> m_climber.setRightSpeed(-0.2), m_climber));
+         () -> m_climber.setRightSpeed(-0.2), m_climber)).onFalse(new RunCommand(
+       () -> m_climber.setRightSpeed(0), m_climber));
 
     // operator b (climber mode): automatic climber up
-    m_operatorController.b().and(() -> isInClimberMode).whileTrue(new RunCommand(() -> m_climber.setMotors(0.5)));
+    m_operatorController.b().and(() -> isInClimberMode).whileTrue(new RunCommand(() -> m_climber.setMotors(0.5)))
+      .onFalse(new RunCommand(() -> m_climber.setMotors(0), m_climber));
 
     // operator a (climber mode): automatic climber down
-    m_operatorController.a().and(() -> isInClimberMode).whileTrue(new RunCommand(() -> m_climber.setMotors(-0.5)));
+    m_operatorController.a().and(() -> isInClimberMode).whileTrue(new RunCommand(() -> m_climber.setMotors(-0.5)))
+      .onFalse(new RunCommand(() -> m_climber.setMotors(0), m_climber));
 
     // operator x: switch operator controller modes
     m_operatorController.x().onTrue(new InstantCommand(() -> isInClimberMode = !isInClimberMode));
@@ -404,7 +412,8 @@ public class RobotContainer {
     m_operatorController.y().and(() -> !isInClimberMode).onTrue(makeSetPositionCommand(m_arm, 1.58));
 
     // operator left trigger: intake
-    m_operatorController.rightBumper().and(() -> !isInClimberMode).whileTrue(new RunCommand(() -> m_indexer.setMotor(0.3), m_indexer));
+    m_operatorController.rightBumper().and(() -> !isInClimberMode).whileTrue(new RunCommand(() -> m_indexer.setMotor(0.3), m_indexer))
+      .onFalse(new RunCommand(() -> m_indexer.setMotor(0), m_indexer));
 
     // operator right trigger: outtake
     //outtake a little bittt to get shooter up to speed
