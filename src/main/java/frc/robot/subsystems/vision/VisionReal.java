@@ -31,7 +31,7 @@ public class VisionReal extends SubsystemBase implements VisionIO {
     private static AprilTagFieldLayout kFieldLayout;
     public static PhotonCamera camera;
     private static PhotonPoseEstimator CamEstimator;
-    private boolean updatePoseWithVisionReadings = true;
+    private boolean updatePoseWithVisionReadings = false;
     public Pose3d robotPose;
 
     //apriltags

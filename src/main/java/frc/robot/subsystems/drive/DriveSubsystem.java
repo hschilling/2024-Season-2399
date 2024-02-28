@@ -141,28 +141,28 @@ public class DriveSubsystem extends SubsystemBase {
 
 
     // updates inputs for each module
-    m_frontLeft.updateInputs();
-    m_rearLeft.updateInputs();
-    m_frontRight.updateInputs();
-    m_rearRight.updateInputs();
+    // m_frontLeft.updateInputs();
+    // m_rearLeft.updateInputs();
+    // m_frontRight.updateInputs();
+    // m_rearRight.updateInputs();
 
-    field2d.setRobotPose(getPose());
+    // field2d.setRobotPose(getPose());
 
-    frontLeftField2dModule.setPose(getPose().transformBy(new Transform2d(
-        Constants.DriveConstants.FRONT_LEFT_OFFSET,
-        new Rotation2d(m_frontLeft.getTurnEncoderPosition()))));
+    // frontLeftField2dModule.setPose(getPose().transformBy(new Transform2d(
+    //     Constants.DriveConstants.FRONT_LEFT_OFFSET,
+    //     new Rotation2d(m_frontLeft.getTurnEncoderPosition()))));
 
-    rearLeftField2dModule.setPose(getPose().transformBy(new Transform2d(
-        Constants.DriveConstants.REAR_LEFT_OFFSET,
-        new Rotation2d(m_rearLeft.getTurnEncoderPosition()))));
+    // rearLeftField2dModule.setPose(getPose().transformBy(new Transform2d(
+    //     Constants.DriveConstants.REAR_LEFT_OFFSET,
+    //     new Rotation2d(m_rearLeft.getTurnEncoderPosition()))));
 
-    frontRightField2dModule.setPose(getPose().transformBy(new Transform2d(
-        Constants.DriveConstants.FRONT_RIGHT_OFFSET,
-        new Rotation2d(m_frontRight.getTurnEncoderPosition()))));
+    // frontRightField2dModule.setPose(getPose().transformBy(new Transform2d(
+    //     Constants.DriveConstants.FRONT_RIGHT_OFFSET,
+    //     new Rotation2d(m_frontRight.getTurnEncoderPosition()))));
 
-    rearRightField2dModule.setPose(getPose().transformBy(new Transform2d(
-        Constants.DriveConstants.REAR_RIGHT_OFFSET,
-        new Rotation2d(m_rearRight.getTurnEncoderPosition()))));
+    // rearRightField2dModule.setPose(getPose().transformBy(new Transform2d(
+    //     Constants.DriveConstants.REAR_RIGHT_OFFSET,
+    //     new Rotation2d(m_rearRight.getTurnEncoderPosition()))));
 
     
     SwerveModuleState[] swerveModuleStates = new SwerveModuleState[]{
@@ -173,13 +173,13 @@ public class DriveSubsystem extends SubsystemBase {
     };
     swerveModuleStatePublisher.set(swerveModuleStates);
 
-    if (DriverStation.isAutonomous()){
-      //System.out.println("Mahee is annoying");
-    } 
-    if (Robot.isSimulation()) {
-    double angleChange = Constants.DriveConstants.kDriveKinematics.toChassisSpeeds(swerveModuleStates).omegaRadiansPerSecond * (1/Constants.CodeConstants.kMainLoopFrequency);
-    lastAngle = lastAngle.plus(Rotation2d.fromRadians(angleChange));
-    m_gyro.setYaw(lastAngle.getRadians());}
+    // if (DriverStation.isAutonomous()){
+    //   //System.out.println("Mahee is annoying");
+    // } 
+    // if (Robot.isSimulation()) {
+    // double angleChange = Constants.DriveConstants.kDriveKinematics.toChassisSpeeds(swerveModuleStates).omegaRadiansPerSecond * (1/Constants.CodeConstants.kMainLoopFrequency);
+    // lastAngle = lastAngle.plus(Rotation2d.fromRadians(angleChange));
+    // m_gyro.setYaw(lastAngle.getRadians());}
   }
 
   /** Returns the currently-estimated pose of the robot. */
