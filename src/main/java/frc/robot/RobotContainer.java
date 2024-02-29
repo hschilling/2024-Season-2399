@@ -334,7 +334,9 @@ public class RobotContainer {
     // driver left trigger: outtake
     m_driverController.leftTrigger().whileTrue(new ParallelCommandGroup(
        new RunCommand(() -> m_intake.setMotor(-0.3), m_intake),
-        new RunCommand(() -> m_indexer.setMotor(-0.3), m_indexer)));
+        new RunCommand(() -> m_indexer.setMotor(-0.3), m_indexer))).onFalse(new ParallelCommandGroup(
+       new RunCommand(() -> m_intake.setMotor(0), m_intake),
+        new RunCommand(() -> m_indexer.setMotor(0), m_indexer)));
 
     // driver b: reset gyro
     m_driverController.b().onTrue(new InstantCommand(() -> m_gyro.setYaw(0.0)));
@@ -417,7 +419,8 @@ public class RobotContainer {
 
     // operator right trigger: outtake
     //outtake a little bittt to get shooter up to speed
-    m_operatorController.leftBumper().and(() -> !isInClimberMode).onTrue(new RunCommand(() -> m_indexer.setMotor(-0.3), m_indexer).withTimeout(0.1));
+    m_operatorController.leftBumper().and(() -> !isInClimberMode).onTrue(new RunCommand(() -> m_indexer.setMotor(-0.3), m_indexer).withTimeout(0.1)
+      .andThen(new RunCommand(() -> m_indexer.setMotor(0), m_indexer)));
 
     m_operatorController.axisGreaterThan(5, 0.1).whileTrue(new RunCommand(() -> m_arm.setSpeedGravityCompensation(0.1), m_arm));
     m_operatorController.axisLessThan(5, -0.1).whileTrue(new RunCommand(() -> m_arm.setSpeedGravityCompensation(-0.1), m_arm));
